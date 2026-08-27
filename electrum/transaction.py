@@ -327,9 +327,9 @@ class TxInput:
 
     def __init__(self, *,
                  prevout: TxOutpoint,
-                 script_sig: bytes = None,
+                 script_sig: bytes | None = None,
                  nsequence: int = 0xffffffff - 1,
-                 witness: bytes = None,
+                 witness: bytes | None = None,
                  is_coinbase_output: bool = False):
         self.prevout = prevout
         self.script_sig = script_sig
@@ -435,7 +435,7 @@ class TxInput:
             d['witness'] = [x.hex() for x in self.witness_elements()]
         return d
 
-    def serialize_to_network(self, *, script_sig: bytes = None) -> bytes:
+    def serialize_to_network(self, *, script_sig: bytes | None = None) -> bytes:
         if script_sig is None:
             script_sig = self.script_sig
         # Prev hash and index
@@ -2346,8 +2346,8 @@ class PartialTransaction(Transaction):
             inputs: Sequence[PartialTxInput],
             outputs: Sequence[PartialTxOutput],
             *,
-            locktime: int = None,
-            version: int = None,
+            locktime: int | None = None,
+            version: int | None = None,
             BIP69_sort: bool = True
     ) -> 'PartialTransaction':
         self = cls()
