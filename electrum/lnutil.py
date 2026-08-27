@@ -93,6 +93,11 @@ def deserialize_htlc_key(htlc_key: str) -> Tuple[bytes, int]:
     return bytes.fromhex(scid), int(htlc_id)
 
 
+def serialize_trampoline_fwd_key(payment_hash: bytes, outer_payment_secret: bytes) -> str:
+    """Bucket key for incoming htlcs we are asked to relay as a trampoline node. """
+    return 'fwd:' + (payment_hash + outer_payment_secret).hex()
+
+
 @attr.s
 class OnlyPubkeyKeypair(StoredObject):
     pubkey = attr.ib(type=bytes, converter=hex_to_bytes, repr=bytes_to_hex)

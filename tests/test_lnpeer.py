@@ -1325,6 +1325,103 @@ class TestPeerDirect(TestPeer):
         finally:
             util.unregister_callback(on_htlc_failed)
 
+    async def test_trampoline_relay_htlc_must_not_settle_with_our_preimage(self):
+        """Alice holds an invoice created by Bob, hence she knows RHASH and Bob's payment_secret.
+        She sends Bob a dust htlc whose outer onion is addressed to Bob (using the invoice's
+        payment_secret, and claiming a tiny total_msat), but whose inner trampoline onion asks Bob
+        to *relay* the payment. Such an htlc is not validated against the invoice at all: it would
+        get bucketed by payment_hash+outer_payment_secret, which is the key the invoice's own htlcs
+        use, and the tiny total_msat would make a single dust htlc complete the set and move it to
+        SETTLING - from where it gets settled with whatever preimage we have for RHASH, which for
+        our own invoice we do have.
+        Bob must fail such htlcs, and they must never enter any htlc set.
+        """
+        graph = self.prepare_chans_and_peers_in_graph(self.GRAPH_DEFINITIONS['single_chan'])
+        p1, p2 = graph.peers.values()
+        w1, w2 = graph.workers.values()
+        alice_channel = graph.channels[('alice', 'bob')][0]
+        w2.config.EXPERIMENTAL_LN_FORWARD_PAYMENTS = True
+        w2.config.EXPERIMENTAL_LN_FORWARD_TRAMPOLINE_PAYMENTS = True
+
+        # The forwarding callback is spawned as a task *after* the htlc set has been moved to
+        # SETTLING, and a SETTLING set is settled as soon as we have a preimage for its RHASH.
+        # Delay the callback, modelling another peer's htlc_switch iteration (the htlc sets are
+        # shared between peers) getting to the SETTLING set before the callback records its failure.
+        orig_maybe_forward_htlc_set = w2.maybe_forward_htlc_set
+        async def maybe_forward_htlc_set(*args, **kwargs):
+            await asyncio.sleep(0.15)
+            return await orig_maybe_forward_htlc_set(*args, **kwargs)
+        w2.maybe_forward_htlc_set = maybe_forward_htlc_set
+
+        payment_keys_used = []
+        orig_update_or_create_mpp = w2.update_or_create_mpp_with_received_htlc
+        def update_or_create_mpp(*, payment_key, **kwargs):
+            payment_keys_used.append(payment_key)
+            return orig_update_or_create_mpp(payment_key=payment_key, **kwargs)
+        w2.update_or_create_mpp_with_received_htlc = update_or_create_mpp
+
+        async def attack():
+            await util.wait_for2(p1.initialized, 1)
+            await util.wait_for2(p2.initialized, 1)
+            lnaddr, _pay_req = self.prepare_invoice(w2, amount_msat=100_000_000)
+            payment_hash = lnaddr.paymenthash
+            self.assertIsNotNone(w2.get_preimage(payment_hash))
+            invoice_payment_key = (payment_hash + lnaddr.payment_secret).hex()
+            # note: the amounts of the two onions are consistent with each other, so that the htlc
+            #       is only stopped by the checks this test is about.
+            send_trampoline_relay_request_htlc(
+                p1=p1, w1=w1, w2=w2, chan=alice_channel,
+                payment_hash=payment_hash,
+                outer_payment_secret=lnaddr.payment_secret,
+                htlc_amount_msat=1000,
+                amt_to_forward=1000,
+            )
+            await wait_for_htlc_resolved()
+            self.assertEqual(0, nhtlc_success, "Bob settled a relay request htlc")
+            self.assertIsNone(w1.get_preimage(payment_hash), "Bob released the preimage")
+            self.assertEqual(PR_UNPAID, w2.get_payment_status(payment_hash, direction=RECEIVED))
+            self.assertNotIn(invoice_payment_key, payment_keys_used,
+                             "relay request was bucketed together with our invoice")
+            self.assertEqual([], payment_keys_used)
+            raise SuccessfulTest()
+
+        async def f():
+            async with OldTaskGroup() as group:
+                await group.spawn(p1._message_loop())
+                await group.spawn(p1.htlc_switch())
+                await group.spawn(p2._message_loop())
+                await group.spawn(p2.htlc_switch())
+                await asyncio.sleep(0.01)
+                await group.spawn(attack())
+
+        htlc_resolved = asyncio.Event()
+        nhtlc_success = 0
+        nhtlc_failed = 0
+        async def wait_for_htlc_resolved():
+            while nhtlc_success + nhtlc_failed == 0:
+                await htlc_resolved.wait()
+            # give Bob some extra time to (wrongly) settle the htlc
+            await asyncio.sleep(0.3)
+        async def on_htlc_fulfilled(*args):
+            nonlocal nhtlc_success
+            nhtlc_success += 1
+            htlc_resolved.set()
+            htlc_resolved.clear()
+        async def on_htlc_failed(*args):
+            nonlocal nhtlc_failed
+            nhtlc_failed += 1
+            htlc_resolved.set()
+            htlc_resolved.clear()
+        util.register_callback(on_htlc_fulfilled, ["htlc_fulfilled"])
+        util.register_callback(on_htlc_failed, ["htlc_failed"])
+
+        try:
+            with self.assertRaises(SuccessfulTest):
+                await f()
+        finally:
+            util.unregister_callback(on_htlc_fulfilled)
+            util.unregister_callback(on_htlc_failed)
+
     async def test_mpp_cleanup_after_expiry(self):
         """
         1. Alice sends two HTLCs to Bob, not reaching total_msat, and eventually they MPP_TIMEOUT

@@ -48,7 +48,7 @@ from .lnutil import (Outpoint, LocalConfig, RECEIVED, UpdateAddHtlc, ChannelConf
                      IncompatibleLightningFeatures, ChannelType, LNProtocolWarning, validate_features,
                      IncompatibleOrInsaneFeatures, ReceivedMPPStatus, ReceivedMPPHtlc,
                      GossipForwardingMessage, GossipTimestampFilter, channel_id_from_funding_tx,
-                     serialize_htlc_key, Keypair, RecvMPPResolution)
+                     serialize_htlc_key, serialize_trampoline_fwd_key, Keypair, RecvMPPResolution)
 from .lntransport import LNTransport, LNTransportBase, LightningPeerConnectionClosed, HandshakeFailed
 from .lnmsg import encode_msg, decode_msg, UnknownOptionalMsgType, FailedToParseMsg
 from .interface import GracefulDisconnect
@@ -2216,9 +2216,13 @@ class Peer(Logger, EventListener):
             if not fw_enabled:
                 _log_fail_reason("forwarding is disabled")
                 raise OnionRoutingFailure(code=OnionFailureCode.PERMANENT_CHANNEL_FAILURE, data=b'')
+            # we must not forward an htlc whose payment_hash matches a payment request we created
+            if self.lnworker.maybe_refuse_to_forward_htlc_that_corresponds_to_payreq_we_created(payment_hash):
+                _log_fail_reason(f"RHASH corresponds to payreq we created")
+                raise OnionRoutingFailure(code=OnionFailureCode.TEMPORARY_NODE_FAILURE, data=b'')
             if outer_onion_payment_secret:
                 # this is a trampoline forwarding htlc, multiple incoming trampoline htlcs can be collected
-                payment_key = (payment_hash + outer_onion_payment_secret).hex()
+                payment_key = serialize_trampoline_fwd_key(payment_hash, outer_onion_payment_secret)
                 return payment_key
             # this is a regular htlc to forward, it will get its own set of size 1 keyed by htlc_key
             # Additional checks required only for forwarding nodes will be done in maybe_forward_htlc().
