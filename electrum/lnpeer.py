@@ -48,7 +48,7 @@ from .lnutil import (Outpoint, LocalConfig, RECEIVED, UpdateAddHtlc, ChannelConf
                      IncompatibleLightningFeatures, ChannelType, LNProtocolWarning, validate_features,
                      IncompatibleOrInsaneFeatures, ReceivedMPPStatus, ReceivedMPPHtlc,
                      GossipForwardingMessage, GossipTimestampFilter, channel_id_from_funding_tx,
-                     serialize_htlc_key, Keypair, RecvMPPResolution)
+                     serialize_htlc_key, serialize_trampoline_fwd_key, Keypair, RecvMPPResolution)
 from .lntransport import LNTransport, LNTransportBase, LightningPeerConnectionClosed, HandshakeFailed
 from .lnmsg import encode_msg, decode_msg, UnknownOptionalMsgType, FailedToParseMsg
 from .interface import GracefulDisconnect
@@ -2216,9 +2216,13 @@ class Peer(Logger, EventListener):
             if not fw_enabled:
                 _log_fail_reason("forwarding is disabled")
                 raise OnionRoutingFailure(code=OnionFailureCode.PERMANENT_CHANNEL_FAILURE, data=b'')
+            # we must not forward an htlc whose payment_hash matches a payment request we created
+            if self.lnworker.maybe_refuse_to_forward_htlc_that_corresponds_to_payreq_we_created(payment_hash):
+                _log_fail_reason(f"RHASH corresponds to payreq we created")
+                raise OnionRoutingFailure(code=OnionFailureCode.TEMPORARY_NODE_FAILURE, data=b'')
             if outer_onion_payment_secret:
                 # this is a trampoline forwarding htlc, multiple incoming trampoline htlcs can be collected
-                payment_key = (payment_hash + outer_onion_payment_secret).hex()
+                payment_key = serialize_trampoline_fwd_key(payment_hash, outer_onion_payment_secret)
                 return payment_key
             # this is a regular htlc to forward, it will get its own set of size 1 keyed by htlc_key
             # Additional checks required only for forwarding nodes will be done in maybe_forward_htlc().
@@ -2257,17 +2261,20 @@ class Peer(Logger, EventListener):
 
             # compare trampoline onion against outer onion according to:
             # https://github.com/lightning/bolts/blob/9938ab3d6160a3ba91f3b0e132858ab14bfe4f81/04-onion-routing.md?plain=1#L547-L553
-            if trampoline_onion.are_we_final:
-                try:
-                    assert not processed_onion.outgoing_cltv_value < trampoline_onion.outgoing_cltv_value
-                    is_mpp = processed_onion.total_msat > processed_onion.amt_to_forward
-                    if is_mpp:
-                        assert not processed_onion.total_msat < trampoline_onion.amt_to_forward
-                    else:
-                        assert not processed_onion.amt_to_forward < trampoline_onion.amt_to_forward
-                except AssertionError:
-                    _log_fail_reason(f'incorrect trampoline onion {processed_onion=}\n{trampoline_onion=}')
-                    raise OnionRoutingFailure(code=OnionFailureCode.INVALID_ONION_PAYLOAD, data=b'\x00\x00\x00')
+            # note: The spec splits the amount check into an mpp and a non-mpp case, but the two are
+            #       the same comparison: a sender not using mpp must set total_msat equal to
+            #       amt_to_forward (L406). The spec also states the cltv/amount requirements
+            #       for the final node only, but we apply them when we are asked to relay as well.
+            try:
+                # note: the inner payload is attacker-chosen, these might be missing (None)
+                assert (inner_amt_to_forward := trampoline_onion.amt_to_forward) is not None
+                assert (inner_cltv_abs := trampoline_onion.outgoing_cltv_value) is not None
+                assert processed_onion.total_msat >= processed_onion.amt_to_forward  # equal in case of non-mpp
+                assert processed_onion.total_msat >= inner_amt_to_forward
+                assert processed_onion.outgoing_cltv_value >= inner_cltv_abs
+            except AssertionError:
+                _log_fail_reason(f'incorrect trampoline onion {processed_onion=}\n{trampoline_onion=}')
+                raise OnionRoutingFailure(code=OnionFailureCode.INVALID_ONION_PAYLOAD, data=b'\x00\x00\x00')
 
             return self._check_unfulfilled_htlc(
                 chan=chan,

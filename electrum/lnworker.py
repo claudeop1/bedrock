@@ -2958,7 +2958,7 @@ class LNWallet(Logger):
     ):
         # Payment key creation:
         #   * for regular forwarded htlcs -> "scid.hex() + ':%d' % htlc_id" [htlc key]
-        #   * for trampoline forwarding -> "payment hash + payment secret from outer onion"
+        #   * for trampoline forwarding -> "fwd:" + (payment hash + payment secret from outer onion).hex()
         #   * for final non-trampoline htlcs (we are receiver) -> "payment hash + payment secret from onion"
         #   * for final trampoline htlcs (we are receiver) -> 2. step grouping:
         #           1. grouping of htlcs by "payments hash + outer onion payment secret", a 'multi-trampoline mpp part'.
@@ -4063,7 +4063,7 @@ class LNWallet(Logger):
         if htlc.amount_msat - next_amount_msat_htlc < forwarding_fees:
             data = next_amount_msat_htlc.to_bytes(8, byteorder="big") + outgoing_chan_upd_message
             raise OnionRoutingFailure(code=OnionFailureCode.FEE_INSUFFICIENT, data=data)
-        if self._maybe_refuse_to_forward_htlc_that_corresponds_to_payreq_we_created(htlc.payment_hash):
+        if self.maybe_refuse_to_forward_htlc_that_corresponds_to_payreq_we_created(htlc.payment_hash):
             log_fail_reason(f"RHASH corresponds to payreq we created")
             raise OnionRoutingFailure(code=OnionFailureCode.TEMPORARY_NODE_FAILURE, data=b'')
         self.logger.info(
@@ -4128,7 +4128,7 @@ class LNWallet(Logger):
             self.logger.exception('')
             raise OnionRoutingFailure(code=OnionFailureCode.INVALID_ONION_PAYLOAD, data=b'\x00\x00\x00')
 
-        if self._maybe_refuse_to_forward_htlc_that_corresponds_to_payreq_we_created(payment_hash):
+        if self.maybe_refuse_to_forward_htlc_that_corresponds_to_payreq_we_created(payment_hash):
             self.logger.debug(
                 f"maybe_forward_trampoline. will FAIL HTLC(s). "
                 f"RHASH corresponds to payreq we created. {payment_hash.hex()=}")
@@ -4230,7 +4230,7 @@ class LNWallet(Logger):
                 data = b''
             raise OnionRoutingFailure(code=OnionFailureCode.UNKNOWN_NEXT_PEER, data=data)
 
-    def _maybe_refuse_to_forward_htlc_that_corresponds_to_payreq_we_created(self, payment_hash: bytes) -> bool:
+    def maybe_refuse_to_forward_htlc_that_corresponds_to_payreq_we_created(self, payment_hash: bytes) -> bool:
         """Returns True if the HTLC should be failed.
         We must not forward HTLCs with a matching payment_hash to a payment request we created.
         Example attack:
