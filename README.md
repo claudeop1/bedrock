@@ -1,4 +1,4 @@
-# Electrum - Lightweight Bitcoin client
+# Bedrock client
 
 ```
 Licence: MIT Licence
