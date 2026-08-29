@@ -41,7 +41,7 @@ jobs:
 
       - name: Rename Files, Directories, and Update Text
         run: |
-          python3 -c '
+          cat << 'EOF' > refactor.py
           import os, re
 
           # Step 1: Rename files and directories bottom-up
@@ -86,7 +86,7 @@ jobs:
 
                           if file == "setup.py":
                               # Prevent setup.py from using scripts=["bedrock"] which conflicts with bedrock/ directory
-                              new_content = re.sub(r"scripts\s*=\s*\[[\"\']bedrock[\"\']\]", "scripts=[\"run_bedrock\"]", new_content)
+                              new_content = re.sub(r"scripts\s*=\s*\[[\"\']bedrock[\"\']\]", 'scripts=["run_bedrock"]', new_content)
 
                           if new_content != content:
                               with open(filepath, "w", encoding="utf-8") as f:
@@ -94,7 +94,10 @@ jobs:
                               print(f"Updated content: {filepath}")
                       except Exception as e:
                           print(f"Skipped {filepath}: {e}")
-          '
+          EOF
+
+          python3 refactor.py
+          rm refactor.py
 
       - name: Install Bedrock Package Locally
         run: |
