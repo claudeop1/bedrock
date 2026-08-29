@@ -16,6 +16,7 @@ Bedrock.egg-info/top_level.txt
 bedrock/__init__.py
 bedrock/address_synchronizer.py
 bedrock/base_crash_reporter.py
+bedrock/bedrock
 bedrock/bip21.py
 bedrock/bip32.py
 bedrock/bip39_recovery.py
