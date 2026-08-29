@@ -19,11 +19,11 @@ on:
         options: [arm64-v8a, armeabi-v7a, x86_64]
 
 permissions:
-  contents: write # Altered from read to allow release updates
+  contents: write
 
 concurrency:
   group: builds-${{ github.ref }}
-  cancel-in-progress: false   # never kill a nightly or in-progress build
+  cancel-in-progress: false
 
 env:
   ARTIFACT_RETENTION: '14'
@@ -36,18 +36,18 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0    # for git describe / version detection
+          fetch-depth: 0
 
       - name: Cache Wine pip
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: contrib/build-wine/.cache/win*/wine_pip_cache
           key: wine-pip-${{ hashFiles('contrib/deterministic-build/*.txt', 'contrib/build-wine/**') }}
 
       - name: Cache Wine native lib builds (libsecp256k1, libusb, libzbar)
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: contrib/build-wine/.cache/win*/build
           key: wine-build-${{ hashFiles('contrib/make_libsecp256k1.sh', 'contrib/make_libusb.sh', 'contrib/make_zbar.sh', 'contrib/build-wine/**') }}
@@ -59,9 +59,9 @@ jobs:
         run: ls -lah contrib/build-wine/dist/
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@v4
         with:
-          name: electrum-windows-${{ github.sha }}
+          name: bedrock-windows-${{ github.sha }}
           path: contrib/build-wine/dist/*
           retention-days: ${{ env.ARTIFACT_RETENTION }}
           if-no-files-found: error
@@ -76,11 +76,10 @@ jobs:
       APK_ARCH: ${{ inputs.android_arch || 'arm64-v8a' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # GitHub guarantees 14 GB of free space, but we can delete some things for more space.
       - name: Free disk space
         run: |
           df -h
@@ -98,13 +97,13 @@ jobs:
           df -h
 
       - name: Cache python packages
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: packages
           key: android-packages-${{ env.APK_ARCH }}-${{ hashFiles('contrib/deterministic-build/**', 'contrib/make_packages.sh', 'contrib/android/**', '!contrib/android/.cache') }}
 
       - name: Cache buildozer (p4a)
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: |
             .buildozer_qml/android/platform/build-${{ env.APK_ARCH }}/packages
@@ -118,9 +117,9 @@ jobs:
         run: ls -lah dist/
 
       - name: Upload Android APK
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@v4
         with:
-          name: electrum-android-${{ env.APK_ARCH }}-${{ github.sha }}
+          name: bedrock-android-${{ env.APK_ARCH }}-${{ github.sha }}
           path: dist/*
           retention-days: ${{ env.ARTIFACT_RETENTION }}
           if-no-files-found: error
@@ -133,18 +132,18 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Cache AppImage pip
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: contrib/build-linux/appimage/.cache/pip_cache
           key: appimage-pip-${{ hashFiles('contrib/deterministic-build/*.txt', 'contrib/build-linux/appimage/**') }}
 
       - name: Cache AppImage build
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: contrib/build-linux/appimage/.cache/appimage
           key: appimage-build-${{ hashFiles('contrib/make_libsecp256k1.sh', 'contrib/make_zbar.sh', 'contrib/build-linux/appimage/**') }}
@@ -156,9 +155,9 @@ jobs:
         run: ls -lah dist/
 
       - name: Upload AppImage
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@v4
         with:
-          name: electrum-appimage-${{ github.sha }}
+          name: bedrock-appimage-${{ github.sha }}
           path: dist/*.AppImage
           retention-days: ${{ env.ARTIFACT_RETENTION }}
           if-no-files-found: error
@@ -175,13 +174,13 @@ jobs:
         include:
           - variant: full
             omit_unclean: '0'
-            artifact_name: electrum-tarball
+            artifact_name: bedrock-tarball
           - variant: source-only
             omit_unclean: '1'
-            artifact_name: electrum-sourceonly-tarball
+            artifact_name: bedrock-sourceonly-tarball
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -194,7 +193,7 @@ jobs:
         run: ls -lah dist/
 
       - name: Upload tarball
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}-${{ github.sha }}
           path: dist/*.tar.gz
@@ -217,7 +216,6 @@ jobs:
       - name: Generate Release Tag Name
         id: tag_gen
         run: |
-          # Creates a nightly identifier if not run from a tagged branch commit
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           else
