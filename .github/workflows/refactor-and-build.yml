@@ -39,7 +39,7 @@ jobs:
             python3-pyqt6 \
             pyqt6-dev-tools
 
-      - name: Rename Files, Directories, and Update Text
+      - name: Rename Files, Directories, and Fix Setup Scripts
         run: |
           cat << 'EOF' > refactor.py
           import os, re
@@ -51,7 +51,7 @@ jobs:
               for f in files:
                   if "electrum" in f.lower():
                       new_f = f.replace("ELECTRUM", "BEDROCK").replace("Electrum", "Bedrock").replace("electrum", "bedrock")
-                      # If root file becomes "bedrock", rename to "run_bedrock" to avoid directory collision
+                      # Rename root executable to 'run_bedrock' to prevent directory collisions
                       if root == "." and new_f == "bedrock":
                           new_f = "run_bedrock"
                       os.rename(os.path.join(root, f), os.path.join(root, new_f))
@@ -62,7 +62,7 @@ jobs:
                       os.rename(os.path.join(root, d), os.path.join(root, new_d))
                       print(f"Renamed dir: {d} -> {new_d}")
 
-          # Step 2: Replace text content across files
+          # Step 2: Replace text content across project files
           replacements = {
               "ELECTRUM": "BEDROCK",
               "Electrum": "Bedrock",
@@ -84,9 +84,13 @@ jobs:
                           for old, new in replacements.items():
                               new_content = new_content.replace(old, new)
 
+                          # Update setup.py script list so setuptools points to run_bedrock
                           if file == "setup.py":
-                              # Prevent setup.py from using scripts=["bedrock"] which conflicts with bedrock/ directory
-                              new_content = re.sub(r"scripts\s*=\s*\[[\"\']bedrock[\"\']\]", 'scripts=["run_bedrock"]', new_content)
+                              new_content = re.sub(
+                                  r"scripts\s*=\s*\[[^\]]+\]",
+                                  'scripts=["run_bedrock"]',
+                                  new_content
+                              )
 
                           if new_content != content:
                               with open(filepath, "w", encoding="utf-8") as f:
