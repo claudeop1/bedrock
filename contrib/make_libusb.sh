@@ -24,9 +24,9 @@ info "Building $pkgname..."
         info "Could not find requested version $LIBUSB_VERSION in local clone; fetching..."
         git fetch --all
     fi
-    git reset --hard
-    git clean -dfxq
-    git checkout "${LIBUSB_VERSION}^{commit}"
+#     git reset --hard
+#     git clean -dfxq
+#     git checkout "${LIBUSB_VERSION}^{commit}"
 
     if [ "$BUILD_TYPE" = "wine" ] ; then
         echo "libusb_1_0_la_LDFLAGS += -Wc,-static" >> libusb/Makefile.am

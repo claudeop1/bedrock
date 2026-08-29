@@ -40,9 +40,9 @@ info "Building $pkgname..."
         info "Could not find requested version $LIBSECP_VERSION in local clone; fetching..."
         git fetch --all
     fi
-    git reset --hard
-    git clean -dfxq
-    git checkout "${LIBSECP_VERSION}^{commit}"
+#     git reset --hard
+#     git clean -dfxq
+#     git checkout "${LIBSECP_VERSION}^{commit}"
 
     if ! [ -x configure ] ; then
         echo "LDFLAGS = -no-undefined" >> Makefile.am

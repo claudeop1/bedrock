@@ -11,7 +11,7 @@ git submodule update --init
 
 LOCALE="$PROJECT_ROOT/bedrock/locale/"
 cd "$LOCALE"
-git clean -ffxd
-git reset --hard
+# git clean -ffxd
+# git reset --hard
 rm -rf llm_proofreader
 "$CONTRIB_LOCALE/build_locale.sh" "$LOCALE/locale" "$LOCALE/locale"

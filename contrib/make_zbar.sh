@@ -34,9 +34,9 @@ info "Building $pkgname..."
         info "Could not find requested version $ZBAR_VERSION in local clone; fetching..."
         git fetch --all
     fi
-    git reset --hard
-    git clean -dfxq
-    git checkout "${ZBAR_VERSION}^{commit}"
+#     git reset --hard
+#     git clean -dfxq
+#     git checkout "${ZBAR_VERSION}^{commit}"
 
     if [ "$BUILD_TYPE" = "wine" ] ; then
         echo "libzbar_la_LDFLAGS += -Wc,-static" >> zbar/Makefile.am

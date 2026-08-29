@@ -227,7 +227,7 @@ RUN /opt/venv/bin/python3 -m pip install --no-build-isolation --no-dependencies 
 
 # install buildozer
 ENV BUILDOZER_CHECKOUT_COMMIT="6242e3e41365e70f76bd18f30992dcc5898ad40e"
-# ^ from branch electrum_20240930 (note: careful with force-pushing! see #8162)
+# ^ from branch bedrock_20240930 (note: careful with force-pushing! see #8162)
 RUN cd /opt \
     && git clone https://github.com/spesmilo/buildozer \
     && cd buildozer \
@@ -236,7 +236,7 @@ RUN cd /opt \
 
 # install python-for-android
 ENV P4A_CHECKOUT_COMMIT="315bb8adf8022972f0ee87a45896d05c38134e1c"
-# ^ from branch electrum_202602 (note: careful with force-pushing! see #8162)
+# ^ from branch bedrock_202602 (note: careful with force-pushing! see #8162)
 RUN cd /opt \
     && git clone https://github.com/spesmilo/python-for-android \
     && cd python-for-android \

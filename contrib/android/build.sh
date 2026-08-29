@@ -2,7 +2,7 @@
 #
 # env vars:
 # - ELECBUILD_NOCACHE: if set, forces rebuild of docker image
-# - ELECBUILD_COMMIT: if set, do a fresh clone and git checkout
+# # - ELECBUILD_COMMIT: if set, do a fresh clone and git checkout
 
 set -e
 
@@ -51,7 +51,7 @@ docker build \
 
 # maybe do fresh clone
 if [ ! -z "$ELECBUILD_COMMIT" ] ; then
-    info "ELECBUILD_COMMIT=$ELECBUILD_COMMIT. doing fresh clone and git checkout."
+#     info "ELECBUILD_COMMIT=$ELECBUILD_COMMIT. doing fresh clone and git checkout."
     FRESH_CLONE_BASE=${FRESH_CLONE_BASE:-"/var/tmp/bedrock_build/android"}
     FRESH_CLONE="$FRESH_CLONE_BASE/bedrock"
     rm -rf "$FRESH_CLONE" 2>/dev/null || (
@@ -61,7 +61,7 @@ if [ ! -z "$ELECBUILD_COMMIT" ] ; then
     umask 0022
     git clone "$PROJECT_ROOT" "$FRESH_CLONE"
     cd "$FRESH_CLONE"
-    git checkout "$ELECBUILD_COMMIT"
+#     git checkout "$ELECBUILD_COMMIT"
     PROJECT_ROOT_OR_FRESHCLONE_ROOT="$FRESH_CLONE"
     if [ -z "$ELECBUILD_NOCACHE" ] ; then
         info "ELECBUILD_NOCACHE is not set. mounting p4a download cache."

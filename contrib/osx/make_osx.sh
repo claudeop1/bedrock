@@ -106,7 +106,7 @@ PYINSTALLER_COMMIT="306d4d92580fea7be7ff2c89ba112cdc6f73fac1"
     git init
     git remote add origin $PYINSTALLER_REPO
     git fetch --depth 1 origin $PYINSTALLER_COMMIT
-    git checkout -b pinned "${PYINSTALLER_COMMIT}^{commit}"
+#     git checkout -b pinned "${PYINSTALLER_COMMIT}^{commit}"
     rm -fv PyInstaller/bootloader/Darwin-*/run* || true
     # add reproducible randomness. this ensures we build a different bootloader for each commit.
     # if we built the same one for all releases, that might also get anti-virus false positives

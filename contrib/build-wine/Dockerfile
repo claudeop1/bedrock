@@ -68,4 +68,4 @@ WORKDIR ${WORK_DIR}
 RUN chown -R user ${WORK_DIR} /opt
 USER user
 
-RUN mkdir --parents "/opt/wine64/drive_c/electrum"
+RUN mkdir --parents "/opt/wine64/drive_c/bedrock"
