@@ -2,15 +2,15 @@ from typing import NamedTuple, Optional
 import json
 import os
 
-from electrum import keystore
-from electrum import mnemonic
-from electrum import slip39
-from electrum import old_mnemonic
-from electrum.util import bfh
-from electrum.mnemonic import is_new_seed, is_old_seed, calc_seed_type, is_matching_seed, can_seed_have_passphrase
-from electrum.version import SEED_PREFIX_SW, SEED_PREFIX
+from bedrock import keystore
+from bedrock import mnemonic
+from bedrock import slip39
+from bedrock import old_mnemonic
+from bedrock.util import bfh
+from bedrock.mnemonic import is_new_seed, is_old_seed, calc_seed_type, is_matching_seed, can_seed_have_passphrase
+from bedrock.version import SEED_PREFIX_SW, SEED_PREFIX
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from .test_wallet_vertical import UNICODE_HORROR, UNICODE_HORROR_HEX
 
 
@@ -98,10 +98,10 @@ SEED_TEST_CASES = {
 }
 
 
-class Test_NewMnemonic(ElectrumTestCase):
+class Test_NewMnemonic(BedrockTestCase):
 
     def test_mnemonic_to_seed_basic(self):
-        # note: not a valid electrum seed
+        # note: not a valid bedrock seed
         seed = mnemonic.Mnemonic.mnemonic_to_seed(mnemonic='foobar', passphrase='none')
         self.assertEqual('741b72fd15effece6bfe5a26a52184f66811bd2be363190e07a42cca442b1a5bb22b3ad0eb338197287e6d314866c7fba863ac65d3f156087a5052ebc7157fce',
                          seed.hex())
@@ -134,7 +134,7 @@ class Test_NewMnemonic(ElectrumTestCase):
         self.assertEqual(iters, len(pool))
 
 
-class Test_OldMnemonic(ElectrumTestCase):
+class Test_OldMnemonic(BedrockTestCase):
 
     def test(self):
         seed = '8edad31a95e7d59f8837667510d75a4d'
@@ -144,7 +144,7 @@ class Test_OldMnemonic(ElectrumTestCase):
         self.assertEqual(old_mnemonic.mn_decode(result), seed)
 
 
-class Test_BIP39(ElectrumTestCase):
+class Test_BIP39(BedrockTestCase):
 
     def test_checksum(self):
         mnemonic = u'gravity machine north sort system female filter attitude volume fold club stay feature office ecology stable narrow fog'
@@ -169,7 +169,7 @@ class Test_BIP39(ElectrumTestCase):
             bip32_seed)
 
 
-class Test_seeds(ElectrumTestCase):
+class Test_seeds(BedrockTestCase):
     """ Test old and new seeds. """
 
     mnemonics = {
@@ -265,7 +265,7 @@ class Test_seeds(ElectrumTestCase):
         self.assertTrue(can_seed_have_passphrase(seed_2fa_segwit))
 
 
-class Test_slip39(ElectrumTestCase):
+class Test_slip39(BedrockTestCase):
     """ Test SLIP39 test vectors. """
 
     def test_slip39_vectors(self):

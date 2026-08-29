@@ -5,33 +5,33 @@ from decimal import Decimal
 from pprint import pformat
 from typing import NamedTuple, Tuple, Dict, Mapping, TYPE_CHECKING, Sequence
 
-import electrum
-import electrum.trampoline
-from electrum import (
+import bedrock
+import bedrock.trampoline
+from bedrock import (
     bitcoin, lnpeer, lnchannel, lnutil, util,
 )
-from electrum.coinchooser import PRNG
-from electrum.network import ProxySettings
-from electrum.bitcoin import COIN, sha256
-from electrum.bolt11 import encode_bolt11_invoice, BOLT11Addr, decode_bolt11_invoice
-from electrum.invoices import PR_UNPAID, Invoice, LN_EXPIRY_NEVER
-from electrum.lnpeer import Peer
-from electrum.lnutil import (
+from bedrock.coinchooser import PRNG
+from bedrock.network import ProxySettings
+from bedrock.bitcoin import COIN, sha256
+from bedrock.bolt11 import encode_bolt11_invoice, BOLT11Addr, decode_bolt11_invoice
+from bedrock.invoices import PR_UNPAID, Invoice, LN_EXPIRY_NEVER
+from bedrock.lnpeer import Peer
+from bedrock.lnutil import (
     LnFeatures, PaymentFeeBudget, LOCAL, REMOTE, ChannelType, LocalConfig, RemoteConfig,
     OnlyPubkeyKeypair, secret_to_pubkey, RECEIVED,
 )
-from electrum.lnchannel import ChannelState, Channel
-from electrum.lnrouter import LNPathFinder
-from electrum.channel_db import ChannelDB
-from electrum.lnworker import LNWallet, PaySession, PaymentInfo
-from electrum.simple_config import SimpleConfig
-from electrum.fee_policy import FeeTimeEstimates, FEE_ETA_TARGETS
-from electrum.wallet import  Standard_Wallet
+from bedrock.lnchannel import ChannelState, Channel
+from bedrock.lnrouter import LNPathFinder
+from bedrock.channel_db import ChannelDB
+from bedrock.lnworker import LNWallet, PaySession, PaymentInfo
+from bedrock.simple_config import SimpleConfig
+from bedrock.fee_policy import FeeTimeEstimates, FEE_ETA_TARGETS
+from bedrock.wallet import  Standard_Wallet
 
 from . import restore_wallet_from_text__for_unittest
 
 if TYPE_CHECKING:
-    from . import ElectrumTestCase
+    from . import BedrockTestCase
 
 
 high_fee_channel = {
@@ -201,11 +201,11 @@ class MockLNGossip:
         return None, None, None
 
 
-class MockWalletFactory(electrum.wallet.Wallet):
+class MockWalletFactory(bedrock.wallet.Wallet):
 
     @staticmethod
     def wallet_class(wallet_type):
-        real_wallet_class = electrum.wallet.Wallet.wallet_class(wallet_type)
+        real_wallet_class = bedrock.wallet.Wallet.wallet_class(wallet_type)
         if real_wallet_class is Standard_Wallet:
             return MockStandardWallet
         return real_wallet_class
@@ -400,7 +400,7 @@ def prepare_invoice(
     return lnaddr2, Invoice.from_bech32(invoice)
 
 
-def prepare_lnwallets(elec_test_case: 'ElectrumTestCase', graph_definition) -> Mapping[str, MockLNWallet]:
+def prepare_lnwallets(elec_test_case: 'BedrockTestCase', graph_definition) -> Mapping[str, MockLNWallet]:
     workers = {}  # type: Dict[str, MockLNWallet]
     for a, definition in graph_definition.items():
         workers[a] = elec_test_case.create_mock_lnwallet(name=a)
@@ -408,7 +408,7 @@ def prepare_lnwallets(elec_test_case: 'ElectrumTestCase', graph_definition) -> M
 
 
 def prepare_chans_and_peers_in_graph(
-    elec_test_case: 'ElectrumTestCase',
+    elec_test_case: 'BedrockTestCase',
     graph_definition=None,
     *,
     workers: Dict[str, MockLNWallet] = None,

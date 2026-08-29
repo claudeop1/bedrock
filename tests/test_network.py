@@ -3,15 +3,15 @@ import tempfile
 import unittest
 from typing import List
 
-from electrum import constants
-from electrum.simple_config import SimpleConfig
-from electrum.blockchain import BlockchainManager
-from electrum.interface import Interface, ServerAddr, ChainResolutionMode
-from electrum.crypto import sha256
-from electrum.util import OldTaskGroup
-from electrum import util
+from bedrock import constants
+from bedrock.simple_config import SimpleConfig
+from bedrock.blockchain import BlockchainManager
+from bedrock.interface import Interface, ServerAddr, ChainResolutionMode
+from bedrock.crypto import sha256
+from bedrock.util import OldTaskGroup
+from bedrock import util
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 
 
 CRM = ChainResolutionMode
@@ -85,7 +85,7 @@ class MockInterface(Interface):
         return
 
 
-class TestHeaderChainResolution(ElectrumTestCase):
+class TestHeaderChainResolution(BedrockTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -102,7 +102,7 @@ class TestHeaderChainResolution(ElectrumTestCase):
 
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
         self.interface = MockInterface(self.config)
 
     async def test_catchup_one_block_behind(self):

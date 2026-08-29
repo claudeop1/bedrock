@@ -17,43 +17,43 @@ import time
 import statistics
 
 from aiorpcx import timeout_after, TaskTimeout
-from electrum_ecc import ECPrivkey
-import electrum_ecc as ecc
+from bedrock_ecc import ECPrivkey
+import bedrock_ecc as ecc
 
-import electrum
-import electrum.trampoline
-from electrum import bitcoin
-from electrum import util
-from electrum import constants
-from electrum import bip32
-from electrum.network import Network, ProxySettings
-from electrum import simple_config, lnutil
-from electrum.bolt11 import encode_bolt11_invoice, BOLT11Addr
-from electrum.bitcoin import sha256
-from electrum.transaction import Transaction
-from electrum.util import NetworkRetryManager, bfh, OldTaskGroup, EventListener, InvoiceError
-from electrum.lnpeer import Peer
-from electrum.lnpeer import CoopCloseFailure
-from electrum.lntransport import LNPeerAddr
-from electrum.crypto import privkey_to_pubkey
-from electrum.lnutil import Keypair, PaymentFailure, LnFeatures, HTLCOwner, PaymentFeeBudget, RECEIVED
-from electrum.lnchannel import ChannelState, PeerState, Channel
-from electrum.lnrouter import LNPathFinder, PathEdge, LNPathInconsistent
-from electrum.channel_db import ChannelDB, InvalidGossipMsg
-from electrum.lnworker import LNWallet, NoPathFound, SentHtlcInfo, PaySession, LNPeerManager
-from electrum.lnmsg import encode_msg, decode_msg
-from electrum import lnmsg
-from electrum.logging import console_stderr_handler, Logger
-from electrum.lnonion import OnionFailureCode, OnionRoutingFailure, OnionHopsDataSingle, OnionPacket
-from electrum.lnutil import LOCAL, REMOTE, UpdateAddHtlc, RecvMPPResolution, RevocationStore
-from electrum.invoices import PR_PAID, PR_UNPAID, Invoice
-from electrum.interface import GracefulDisconnect
-from electrum.fee_policy import FeeTimeEstimates, FEE_ETA_TARGETS
-from electrum.mpp_split import split_amount_normal
-from electrum.wallet import Abstract_Wallet, Standard_Wallet
+import bedrock
+import bedrock.trampoline
+from bedrock import bitcoin
+from bedrock import util
+from bedrock import constants
+from bedrock import bip32
+from bedrock.network import Network, ProxySettings
+from bedrock import simple_config, lnutil
+from bedrock.bolt11 import encode_bolt11_invoice, BOLT11Addr
+from bedrock.bitcoin import sha256
+from bedrock.transaction import Transaction
+from bedrock.util import NetworkRetryManager, bfh, OldTaskGroup, EventListener, InvoiceError
+from bedrock.lnpeer import Peer
+from bedrock.lnpeer import CoopCloseFailure
+from bedrock.lntransport import LNPeerAddr
+from bedrock.crypto import privkey_to_pubkey
+from bedrock.lnutil import Keypair, PaymentFailure, LnFeatures, HTLCOwner, PaymentFeeBudget, RECEIVED
+from bedrock.lnchannel import ChannelState, PeerState, Channel
+from bedrock.lnrouter import LNPathFinder, PathEdge, LNPathInconsistent
+from bedrock.channel_db import ChannelDB, InvalidGossipMsg
+from bedrock.lnworker import LNWallet, NoPathFound, SentHtlcInfo, PaySession, LNPeerManager
+from bedrock.lnmsg import encode_msg, decode_msg
+from bedrock import lnmsg
+from bedrock.logging import console_stderr_handler, Logger
+from bedrock.lnonion import OnionFailureCode, OnionRoutingFailure, OnionHopsDataSingle, OnionPacket
+from bedrock.lnutil import LOCAL, REMOTE, UpdateAddHtlc, RecvMPPResolution, RevocationStore
+from bedrock.invoices import PR_PAID, PR_UNPAID, Invoice
+from bedrock.interface import GracefulDisconnect
+from bedrock.fee_policy import FeeTimeEstimates, FEE_ETA_TARGETS
+from bedrock.mpp_split import split_amount_normal
+from bedrock.wallet import Abstract_Wallet, Standard_Wallet
 
 from .test_bitcoin import needs_test_with_all_chacha20_implementations
-from . import ElectrumTestCase, restore_wallet_from_text__for_unittest, lnhelpers
+from . import BedrockTestCase, restore_wallet_from_text__for_unittest, lnhelpers
 from .lnhelpers import Graph, MockLNWallet, create_test_channels, low_fee_channel, depleted_channel
 
 
@@ -83,7 +83,7 @@ def inject_chan_into_gossipdb(
     channel_db.add_channel_update(chan_upd2_dict, verify=False)
 
 
-class TestPeer(ElectrumTestCase):
+class TestPeer(BedrockTestCase):
     TESTNET = True
 
     @classmethod
@@ -96,7 +96,7 @@ class TestPeer(ElectrumTestCase):
         self.GRAPH_DEFINITIONS = copy.deepcopy(lnhelpers._GRAPH_DEFINITIONS)
 
     async def asyncTearDown(self):
-        electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {}
+        bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {}
         await super().asyncTearDown()
 
     prepare_invoice = staticmethod(lnhelpers.prepare_invoice)
@@ -415,13 +415,13 @@ class TestPeerDirect(TestPeer):
                 a_chan, b_chan = await f(last_rev_secret=sha256("fake_data"), **kwargs)
                 self.assertEqual((a_chan._state, b_chan._state), (cs.OPEN, cs.FORCE_CLOSING))
             with self.subTest(msg="overflow of next_local_ctn", **kwargs):
-                with self.assertLogs('electrum', level='INFO') as logs:
+                with self.assertLogs('bedrock', level='INFO') as logs:
                     a_chan, b_chan = await f(ctn_delta=2**48, **kwargs)
                 self.assertEqual((a_chan._state, b_chan._state), (cs.OPEN, cs.FORCE_CLOSING))
                 self.assertTrue(any(("bob->alice" in msg and "channel_reestablish" in msg and "ctn overflow" in msg)
                                     for msg in logs.output))
             with self.subTest(msg="overflow of oldest_unrevoked_remote_ctn", **kwargs):
-                with self.assertLogs('electrum', level='INFO') as logs:
+                with self.assertLogs('bedrock', level='INFO') as logs:
                     a_chan, b_chan = await f(revnum_delta=2**48, **kwargs)
                 self.assertEqual((a_chan._state, b_chan._state), (cs.OPEN, cs.FORCE_CLOSING))
                 self.assertTrue(any(("bob->alice" in msg and "channel_reestablish" in msg and "ctn overflow" in msg)
@@ -476,7 +476,7 @@ class TestPeerDirect(TestPeer):
             async with OldTaskGroup() as group:
                 await group.spawn(p1._message_loop())
                 await group.spawn(p2._message_loop())
-                with self.assertLogs('electrum', level='INFO') as logs:
+                with self.assertLogs('bedrock', level='INFO') as logs:
                     async with OldTaskGroup() as group2:
                         await group2.spawn(p1.reestablish_channel(chan_AB))
                         await group2.spawn(p2.reestablish_channel(chan_BA))
@@ -563,7 +563,7 @@ class TestPeerDirect(TestPeer):
         if test_trampoline:
             await self._activate_trampoline(w1)
             # declare bob as trampoline node
-            electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+            bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                 'bob': LNPeerAddr(host="127.0.0.1", port=9735, pubkey=w2.node_keypair.pubkey),
             }
 
@@ -685,7 +685,7 @@ class TestPeerDirect(TestPeer):
             if test_trampoline:
                 await self._activate_trampoline(w1)
                 # declare bob as trampoline node
-                electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+                bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                     'bob': LNPeerAddr(host="127.0.0.1", port=9735, pubkey=w2.node_keypair.pubkey),
                 }
 
@@ -729,7 +729,7 @@ class TestPeerDirect(TestPeer):
             if test_trampoline:
                 await self._activate_trampoline(w1)
                 # declare bob as trampoline node
-                electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+                bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                     'bob': LNPeerAddr(host="127.0.0.1", port=9735, pubkey=w2.node_keypair.pubkey),
                 }
 
@@ -760,7 +760,7 @@ class TestPeerDirect(TestPeer):
                 await self._activate_trampoline(w1)
                 await self._activate_trampoline(w2)
                 # declare bob as trampoline node
-                electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+                bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                     'bob': LNPeerAddr(host="127.0.0.1", port=9735, pubkey=w2.node_keypair.pubkey),
                 }
 
@@ -812,7 +812,7 @@ class TestPeerDirect(TestPeer):
             if test_trampoline:
                 await self._activate_trampoline(w1)
                 # declare bob as trampoline node
-                electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+                bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                     'bob': LNPeerAddr(host="127.0.0.1", port=9735, pubkey=w2.node_keypair.pubkey),
                 }
 
@@ -943,7 +943,7 @@ class TestPeerDirect(TestPeer):
         self.assertEqual(bob_init_balance_msat + num_payments * payment_value_msat, alice_channel.balance(HTLCOwner.REMOTE))
 
     async def test_payment_recv_mpp_confusion1(self):
-        """Regression test for https://github.com/spesmilo/electrum/security/advisories/GHSA-8r85-vp7r-hjxf"""
+        """Regression test for https://github.com/spesmilo/bedrock/security/advisories/GHSA-8r85-vp7r-hjxf"""
         # This test checks that the following attack does not work:
         #   - Bob creates invoice1: 1 BTC, H1, S1
         #   - Bob creates invoice2: 1 BTC, H2, S2;  both given to attacker to pay
@@ -1020,7 +1020,7 @@ class TestPeerDirect(TestPeer):
             await f()
 
     async def test_payment_recv_mpp_confusion2(self):
-        """Regression test for https://github.com/spesmilo/electrum/security/advisories/GHSA-8r85-vp7r-hjxf"""
+        """Regression test for https://github.com/spesmilo/bedrock/security/advisories/GHSA-8r85-vp7r-hjxf"""
         # This test checks that the following attack does not work:
         #   - Bob creates invoice: 1 BTC
         #   - Alice sends htlc1: 0.1 BTC  (total_msat=0.2 BTC)
@@ -1195,7 +1195,7 @@ class TestPeerDirect(TestPeer):
             if test_trampoline:
                 await self._activate_trampoline(alice_wallet)
                 # declare bob as trampoline node
-                electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+                bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                     'bob': LNPeerAddr(host="127.0.0.1", port=9735, pubkey=bob_wallet.node_keypair.pubkey),
                 }
 
@@ -1292,11 +1292,11 @@ class TestPeerDirect(TestPeer):
                 self.assertIsNone(coop_fail)
                 self.assertEqual((chan_ab._state, chan_ba._state), (ChannelState.CLOSING, ChannelState.CLOSING))
 
-    @mock.patch('electrum.lnpeer.LN_P2P_NETWORK_TIMEOUT', 0.05)
+    @mock.patch('bedrock.lnpeer.LN_P2P_NETWORK_TIMEOUT', 0.05)
     async def test_modern_shutdown_no_overlap(self):
         for alice_closes in [True, False]:
             with self.subTest(alice_closes=alice_closes):
-                with self.assertLogs('electrum', level='ERROR') as logs:
+                with self.assertLogs('bedrock', level='ERROR') as logs:
                     chan_ab, chan_ba, coop_fail = await self._test_shutdown(
                         alice_fee=1,
                         bob_fee=200,
@@ -1656,7 +1656,7 @@ class TestPeerDirect(TestPeer):
             if test_trampoline:
                 await self._activate_trampoline(alice_w)
                 # declare bob as trampoline node
-                electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+                bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                     'bob': LNPeerAddr(host="127.0.0.1", port=9735, pubkey=bob_w.node_keypair.pubkey),
                 }
 
@@ -1690,7 +1690,7 @@ class TestPeerDirect(TestPeer):
         alice_p, bob_p, alice_w, bob_w = self.prepare_peers(alice_channel, bob_channel)
 
         await self._activate_trampoline(alice_w)
-        electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+        bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
             'bob': LNPeerAddr(host="127.0.0.1", port=9735, pubkey=bob_w.node_keypair.pubkey),
         }
 
@@ -1760,7 +1760,7 @@ class TestPeerDirect(TestPeer):
             if test_trampoline:
                 await self._activate_trampoline(w1)
                 # declare bob as trampoline node
-                electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+                bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                     'bob': LNPeerAddr(host="127.0.0.1", port=9735, pubkey=w2.node_keypair.pubkey),
                 }
 
@@ -1849,7 +1849,7 @@ class TestPeerForwarding(TestPeer):
 
         async def pay(lnaddr, pay_req):
             self.assertEqual(PR_UNPAID, graph.workers['alice'].get_payment_status(lnaddr.paymenthash, direction=RECEIVED))
-            with mock.patch('electrum.mpp_split.split_amount_normal',
+            with mock.patch('bedrock.mpp_split.split_amount_normal',
                                 side_effect=mocked_split_amount_normal):
                 result, log = await graph.workers['bob'].pay_invoice(pay_req)
             self.assertTrue(result)
@@ -2031,7 +2031,7 @@ class TestPeerForwarding(TestPeer):
                 self.assertEqual(None, graph.workers['alice'].get_preimage(lnaddr1.paymenthash))
             with self.subTest(msg="try to make Bob forward in trampoline mode"):
                 # declare Bob as trampoline forwarding node
-                electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+                bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                     graph.workers['bob'].name: LNPeerAddr(host="127.0.0.1", port=9735, pubkey=graph.workers['bob'].node_keypair.pubkey),
                 }
                 await self._activate_trampoline(graph.workers['alice'])
@@ -2153,7 +2153,7 @@ class TestPeerForwarding(TestPeer):
             if mpp_invoice:
                 dave_w.features |= LnFeatures.BASIC_MPP_OPT
             if disable_trampoline_receiving:
-                dave_w.features &= ~LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_ELECTRUM
+                dave_w.features &= ~LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_BEDROCK
             if not bob_forwarding:
                 bob_w.enable_htlc_forwarding = False
             if alice_uses_trampoline:
@@ -2255,7 +2255,7 @@ class TestPeerForwarding(TestPeer):
 
     async def test_payment_multipart_trampoline_e2e(self):
         graph = self.prepare_chans_and_peers_in_graph(self.GRAPH_DEFINITIONS['square_graph'])
-        electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+        bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
             graph.workers['bob'].name: LNPeerAddr(host="127.0.0.1", port=9735, pubkey=graph.workers['bob'].node_keypair.pubkey),
             graph.workers['carol'].name: LNPeerAddr(host="127.0.0.1", port=9735, pubkey=graph.workers['carol'].node_keypair.pubkey),
         }
@@ -2264,7 +2264,7 @@ class TestPeerForwarding(TestPeer):
 
     async def test_payment_multipart_trampoline_legacy(self):
         graph = self.prepare_chans_and_peers_in_graph(self.GRAPH_DEFINITIONS['square_graph'])
-        electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+        bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
             graph.workers['bob'].name: LNPeerAddr(host="127.0.0.1", port=9735, pubkey=graph.workers['bob'].node_keypair.pubkey),
             graph.workers['carol'].name: LNPeerAddr(host="127.0.0.1", port=9735, pubkey=graph.workers['carol'].node_keypair.pubkey),
         }
@@ -2362,12 +2362,12 @@ class TestPeerForwarding(TestPeer):
         peers = graph.peers.values()
 
         # declare routing nodes as trampoline nodes
-        electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {}
+        bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {}
         for name in trampoline_forwarders:
             user_w = graph.workers[name]
             user_w.config.EXPERIMENTAL_LN_FORWARD_TRAMPOLINE_PAYMENTS = True
             peer_addr = LNPeerAddr(host="127.0.0.1", port=9735, pubkey=user_w.node_keypair.pubkey)
-            electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS[user_w.name] = peer_addr
+            bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS[user_w.name] = peer_addr
 
         for user in trampoline_users:
             user_w = graph.workers[user]
@@ -2395,7 +2395,7 @@ class TestPeerForwarding(TestPeer):
             graph.workers['bob'].network.config.TEST_FORCE_MPP = True   # trampoline must wait until all outgoing htlcs have failed before failing incoming htlcs
         if is_legacy:
             # turn off trampoline features in invoice
-            graph.workers['dave'].features = graph.workers['dave'].features ^ LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_ELECTRUM
+            graph.workers['dave'].features = graph.workers['dave'].features ^ LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_BEDROCK
         return graph
 
     async def test_trampoline_mpp_consolidation(self):
@@ -2549,14 +2549,14 @@ class TestPeerForwarding(TestPeer):
             new_payload['amt_to_forward'] = amt_to_forward
             modified_hops_data[0] = dataclasses.replace(modified_hops_data[0], payload=new_payload)
             self.logger.debug(f"{modified_hops_data=}\nsent_{hops_data=}")
-            modified_trampoline_onion = electrum.lnonion.new_onion_packet(
+            modified_trampoline_onion = bedrock.lnonion.new_onion_packet(
                 payment_path_pubkeys,
                 session_key,
                 modified_hops_data,
                 **kwargs
             )
             # return the unmodified onion
-            return electrum.lnonion.new_onion_packet(
+            return bedrock.lnonion.new_onion_packet(
                 payment_path_pubkeys,
                 session_key,
                 hops_data,
@@ -2577,7 +2577,7 @@ class TestPeerForwarding(TestPeer):
                 }
                 hops_data[0] = dataclasses.replace(hops_data[0], payload=MappingProxyType(new_payload))
                 modified_trampoline_onion = None
-            return electrum.lnonion.new_onion_packet(
+            return bedrock.lnonion.new_onion_packet(
                 payment_path_pubkeys,
                 session_key,
                 hops_data,
@@ -2588,8 +2588,8 @@ class TestPeerForwarding(TestPeer):
         alice = graph.workers['alice']
         alice.config.INITIAL_TRAMPOLINE_FEE_LEVEL = 6  # set high so the first attempt would succeed
         with self.assertRaises(PaymentFailure):
-            with mock.patch('electrum.trampoline.new_onion_packet', side_effect=modified_new_onion_packet_trampoline), \
-                    mock.patch('electrum.lnworker.new_onion_packet', side_effect=modified_new_onion_packet_lnworker):
+            with mock.patch('bedrock.trampoline.new_onion_packet', side_effect=modified_new_onion_packet_trampoline), \
+                    mock.patch('bedrock.lnworker.new_onion_packet', side_effect=modified_new_onion_packet_lnworker):
                         await self._run_trampoline_payment(graph, attempts=1)
         bob_alice_channel = graph.channels[('bob', 'alice')][0]
         bob_hm = bob_alice_channel.hm
@@ -2624,7 +2624,7 @@ class TestPeerForwarding(TestPeer):
                 lnaddr, pay_req = self.prepare_invoice(graph.workers['carol'], include_routing_hints=True)
                 await group.spawn(pay(lnaddr, pay_req))
 
-        with self.assertLogs('electrum', level='INFO') as logs:
+        with self.assertLogs('bedrock', level='INFO') as logs:
             with self.assertRaises(PaymentFailure):
                 await f()
             self.assertTrue(
@@ -2647,7 +2647,7 @@ class TestPeerForwarding(TestPeer):
             if test_trampoline:
                 # trampoline forwarder
                 graph.workers['bob'].config.EXPERIMENTAL_LN_FORWARD_TRAMPOLINE_PAYMENTS = True
-                electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+                bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
                     graph.workers['bob'].name: LNPeerAddr(host="127.0.0.1", port=9735, pubkey=graph.workers['bob'].node_keypair.pubkey),
                 }
                 # trampoline users

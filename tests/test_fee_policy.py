@@ -1,9 +1,9 @@
-from electrum.fee_policy import FeeHistogram
+from bedrock.fee_policy import FeeHistogram
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 
 
-class Test_FeeHistogram(ElectrumTestCase):
+class Test_FeeHistogram(BedrockTestCase):
 
     def setUp(self):
         super(Test_FeeHistogram, self).setUp()

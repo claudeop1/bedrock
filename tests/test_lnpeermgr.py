@@ -4,13 +4,13 @@ import socket
 import asyncio
 from unittest import mock
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 
-from electrum.lntransport import ConnStringFormatError
-from electrum.logging import console_stderr_handler
+from bedrock.lntransport import ConnStringFormatError
+from bedrock.logging import console_stderr_handler
 
 
-class TestLNPeerManager(ElectrumTestCase):
+class TestLNPeerManager(BedrockTestCase):
     TESTNET = True
 
     @classmethod

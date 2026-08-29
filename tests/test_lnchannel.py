@@ -1,4 +1,4 @@
-# Copyright (C) 2018 The Electrum developers
+# Copyright (C) 2018 The Bedrock developers
 # Copyright (C) 2015-2018 The Lightning Network Developers
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,26 +29,26 @@ import logging
 import dataclasses
 import time
 
-from electrum import bitcoin
-from electrum import lnchannel
-from electrum import lnutil
-from electrum.crypto import sha256
-from electrum.lnutil import (
+from bedrock import bitcoin
+from bedrock import lnchannel
+from bedrock import lnutil
+from bedrock.crypto import sha256
+from bedrock.lnutil import (
     SENT, LOCAL, REMOTE, RECEIVED, UpdateAddHtlc, ChannelType,
     effective_htlc_tx_weight, ZEROCONF_TIMEOUT,
     CHANNEL_OPENING_TIMEOUT_SEC,
 )
-from electrum.logging import console_stderr_handler
-from electrum.lnchannel import ChannelState, Channel
+from bedrock.logging import console_stderr_handler
+from bedrock.lnchannel import ChannelState, Channel
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from .lnhelpers import create_test_channels
 
 
 one_bitcoin_in_msat = bitcoin.COIN * 1000
 
 
-class TestFee(ElectrumTestCase):
+class TestFee(BedrockTestCase):
     """
     test
     https://github.com/lightningnetwork/lightning-rfc/blob/e0c436bd7a3ed6a028e1cb472908224658a14eca/03-transactions.md#requirements-2
@@ -71,7 +71,7 @@ class TestFee(ElectrumTestCase):
         self.assertIn(expected_value, [x.value for x in alice_channel.get_latest_commitment(LOCAL).outputs()])
 
 
-class TestChannel(ElectrumTestCase):
+class TestChannel(BedrockTestCase):
     maxDiff = 999
 
     def assertOutputExistsByValue(self, tx, amt_sat):
@@ -202,7 +202,7 @@ class TestChannel(ElectrumTestCase):
         self.assertEqual(bob_channel.included_htlcs(REMOTE, RECEIVED, 0), [])
         self.assertEqual(bob_channel.included_htlcs(REMOTE, RECEIVED, 1), [])
 
-        from electrum.lnutil import extract_ctn_from_tx_and_chan
+        from bedrock.lnutil import extract_ctn_from_tx_and_chan
         tx0 = str(alice_channel.force_close_tx())
         self.assertEqual(alice_channel.get_oldest_unrevoked_ctn(LOCAL), 0)
         self.assertEqual(extract_ctn_from_tx_and_chan(alice_channel.force_close_tx(), alice_channel), 0)
@@ -725,7 +725,7 @@ class TestChannelNoAnchors(TestChannel):
     TEST_ANCHOR_CHANNELS = False
 
 
-class TestAvailableToSpend(ElectrumTestCase):
+class TestAvailableToSpend(BedrockTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         self.alice_lnwallet = self.create_mock_lnwallet(name="alice")
@@ -842,7 +842,7 @@ class TestAvailableToSpendNoAnchors(TestAvailableToSpend):
     TEST_ANCHOR_CHANNELS = False
 
 
-class TestChanReserve(ElectrumTestCase):
+class TestChanReserve(BedrockTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         alice_lnwallet = self.create_mock_lnwallet(name="alice")
@@ -980,7 +980,7 @@ class TestChanReserveNoAnchors(TestChanReserve):
     TEST_ANCHOR_CHANNELS = False
 
 
-class TestDust(ElectrumTestCase):
+class TestDust(BedrockTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         self.alice_lnwallet = self.create_mock_lnwallet(name="alice")

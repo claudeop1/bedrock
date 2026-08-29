@@ -20,11 +20,11 @@ if [ ! -d "$PACKAGES" ]; then
 fi
 
 # update locale
-info "preparing electrum-locale."
+info "preparing bedrock-locale."
 (
     "$CONTRIB/locale/build_cleanlocale.sh"
     # we want the binary to have only compiled (.mo) locale files; not source (.po) files
-    rm -r "$PROJECT_ROOT/electrum/locale/locale"/*/electrum.po
+    rm -r "$PROJECT_ROOT/bedrock/locale/locale"/*/bedrock.po
 )
 
 pushd "$CONTRIB_ANDROID"
@@ -35,8 +35,8 @@ info "apk building phase starts."
 # e.g. to allow simultaneous mainnet and testnet installs of the apk.
 # defaults:
 #
-#   export APP_PACKAGE_NAME=Electrum
-#   export APP_PACKAGE_DOMAIN=org.electrum
+#   export APP_PACKAGE_NAME=Bedrock
+#   export APP_PACKAGE_DOMAIN=org.bedrock
 #
 # FIXME: changing "APP_PACKAGE_NAME" seems to require a clean rebuild of ".buildozer/".
 #        However, even with a clean build, the build appears to break in the final stages (~4.7.0).
@@ -45,10 +45,10 @@ info "apk building phase starts."
 # So, in particular, to build testnet APKs, simply uncomment one of the following at a time (per-build):
 #
 # Testnet3
-#export APP_PACKAGE_DOMAIN=org.electrum.testnet
+#export APP_PACKAGE_DOMAIN=org.bedrock.testnet
 #
 # Testnet4
-#export APP_PACKAGE_DOMAIN=org.electrum.testnet4
+#export APP_PACKAGE_DOMAIN=org.bedrock.testnet4
 
 if [ $CI ]; then
     # override log level specified in buildozer.spec to "debug":
@@ -61,7 +61,7 @@ if [[ "$3" == "release" ]] ; then
     export P4A_RELEASE_KEYSTORE_PASSWD="$4"
     export P4A_RELEASE_KEYALIAS_PASSWD="$4"
     export P4A_RELEASE_KEYSTORE=~/.keystore
-    export P4A_RELEASE_KEYALIAS=electrum
+    export P4A_RELEASE_KEYALIAS=bedrock
     if [ -z "$P4A_RELEASE_KEYSTORE_PASSWD" ] || [ -z "$P4A_RELEASE_KEYALIAS_PASSWD" ]; then
         echo "p4a password not defined"
         exit 1
@@ -75,7 +75,7 @@ elif [[ "$3" == "debug" ]] ; then
     export P4A_DEBUG_KEYSTORE="$CONTRIB_ANDROID"/android_debug.keystore
     export P4A_DEBUG_KEYSTORE_PASSWD=unsafepassword
     export P4A_DEBUG_KEYALIAS_PASSWD=unsafepassword
-    export P4A_DEBUG_KEYALIAS=electrum
+    export P4A_DEBUG_KEYALIAS=bedrock
     # create keystore if needed
     if [ ! -f "$P4A_DEBUG_KEYSTORE" ]; then
         keytool -genkey -v -keystore "$CONTRIB_ANDROID"/android_debug.keystore \

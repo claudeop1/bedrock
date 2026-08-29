@@ -17,7 +17,7 @@ _min_python_version_tuple = tuple(map(int, (MIN_PYTHON_VERSION.split("."))))
 
 
 if sys.version_info[:3] < _min_python_version_tuple:
-    sys.exit("Error: Electrum requires Python version >= %s..." % MIN_PYTHON_VERSION)
+    sys.exit("Error: Bedrock requires Python version >= %s..." % MIN_PYTHON_VERSION)
 
 with open('contrib/requirements/requirements.txt') as f:
     requirements = f.read().splitlines()
@@ -26,7 +26,7 @@ with open('contrib/requirements/requirements-hw.txt') as f:
     requirements_hw = f.read().splitlines()
 
 # load version.py; needlessly complicated alternative to "imp.load_source":
-version_spec = importlib.util.spec_from_file_location('version', 'electrum/version.py')
+version_spec = importlib.util.spec_from_file_location('version', 'bedrock/version.py')
 version_module = version = importlib.util.module_from_spec(version_spec)
 version_spec.loader.exec_module(version_module)
 
@@ -35,9 +35,9 @@ data_files = []
 if platform.system() in ['Linux', 'FreeBSD', 'DragonFly']:
     # note: we can't use absolute paths here. see #7787
     data_files += [
-        (os.path.join('share', 'applications'),               ['electrum.desktop']),
-        (os.path.join('share', 'pixmaps'),                    ['electrum/gui/icons/electrum.png']),
-        (os.path.join('share', 'icons/hicolor/128x128/apps'), ['electrum/gui/icons/electrum.png']),
+        (os.path.join('share', 'applications'),               ['bedrock.desktop']),
+        (os.path.join('share', 'pixmaps'),                    ['bedrock/gui/icons/bedrock.png']),
+        (os.path.join('share', 'icons/hicolor/128x128/apps'), ['bedrock/gui/icons/bedrock.png']),
     ]
 
 extras_require = {
@@ -56,27 +56,27 @@ extras_require['fast'] = extras_require['crypto']
 
 
 setup(
-    name="Electrum",
-    version=version.ELECTRUM_VERSION,
+    name="Bedrock",
+    version=version.BEDROCK_VERSION,
     python_requires='>={}'.format(MIN_PYTHON_VERSION),
     install_requires=requirements,
     extras_require=extras_require,
-    packages=(['electrum',]
-              + [('electrum.'+pkg) for pkg in
-                 find_packages('electrum', exclude=["tests"])]),
+    packages=(['bedrock',]
+              + [('bedrock.'+pkg) for pkg in
+                 find_packages('bedrock', exclude=["tests"])]),
     package_dir={
-        'electrum': 'electrum'
+        'bedrock': 'bedrock'
     },
     # Note: MANIFEST.in lists what gets included in the tar.gz, and the
     # package_data kwarg lists what gets put in site-packages when pip installing the tar.gz.
     # By specifying include_package_data=True, MANIFEST.in becomes responsible for both.
     include_package_data=True,
-    scripts=['electrum/electrum'],
+    scripts=["run_bedrock"],
     data_files=data_files,
     description="Lightweight Bitcoin Wallet",
     author="Thomas Voegtlin",
-    author_email="thomasv@electrum.org",
+    author_email="thomasv@bedrock.org",
     license="MIT Licence",
-    url="https://electrum.org",
+    url="https://bedrock.org",
     long_description="""Lightweight Bitcoin Wallet""",
 )

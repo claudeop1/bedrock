@@ -5,24 +5,24 @@ from unittest import mock
 from typing import Optional
 from os import urandom
 
-from electrum import util
-from electrum.channel_db import NodeInfo
-from electrum.onion_message import is_onion_message_node
-from electrum.trampoline import (create_trampoline_onion, _allocate_fee_budget_among_route, PLACEHOLDER_FEE,
+from bedrock import util
+from bedrock.channel_db import NodeInfo
+from bedrock.onion_message import is_onion_message_node
+from bedrock.trampoline import (create_trampoline_onion, _allocate_fee_budget_among_route, PLACEHOLDER_FEE,
                                  get_trampoline_budget)
-from electrum.util import bfh
-from electrum.lnutil import ShortChannelID, LnFeatures, PaymentFeeBudget
-from electrum.lnonion import (OnionHopsDataSingle, new_onion_packet,
+from bedrock.util import bfh
+from bedrock.lnutil import ShortChannelID, LnFeatures, PaymentFeeBudget
+from bedrock.lnonion import (OnionHopsDataSingle, new_onion_packet,
                               process_onion_packet, _decode_onion_error, decode_onion_error,
                               OnionFailureCode)
-from electrum import bitcoin, lnrouter
-from electrum.constants import BitcoinTestnet
-from electrum.simple_config import SimpleConfig
-from electrum.lnrouter import (PathEdge, LiquidityHintMgr, DEFAULT_PENALTY_PROPORTIONAL_MILLIONTH,
+from bedrock import bitcoin, lnrouter
+from bedrock.constants import BitcoinTestnet
+from bedrock.simple_config import SimpleConfig
+from bedrock.lnrouter import (PathEdge, LiquidityHintMgr, DEFAULT_PENALTY_PROPORTIONAL_MILLIONTH,
                                DEFAULT_PENALTY_BASE_MSAT, fee_for_edge_msat, LNPaymentTRoute, TrampolineEdge,
                                HINT_DURATION)
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from .test_bitcoin import needs_test_with_all_chacha20_implementations
 
 
@@ -45,14 +45,14 @@ def node_features(extra: LnFeatures = None) -> bytes:
     return lnf.to_bytes(8, 'big')
 
 
-class Test_LNRouter(ElectrumTestCase):
+class Test_LNRouter(BedrockTestCase):
     TESTNET = True
 
     cdb = None  # type: Optional[lnrouter.ChannelDB]
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
         self.assertIsNone(self.cdb)  # sanity-check side effects from previous tests
 
     async def asyncTearDown(self):
@@ -607,7 +607,7 @@ def _tramp_edge(start: str, end: str, *, fee_base=PLACEHOLDER_FEE, fee_prop=PLAC
     )
 
 
-class TestAllocateFeeBudget(ElectrumTestCase):
+class TestAllocateFeeBudget(BedrockTestCase):
     """Tests for _allocate_fee_budget_among_route (backward-walk allocator)."""
 
     AMOUNT = 1_000_000  # 1000 sat

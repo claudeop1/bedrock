@@ -8,27 +8,27 @@ from functools import partial
 from unittest.mock import patch
 from aiorpcx import NetAddress
 
-import electrum_ecc as ecc
-from electrum_ecc import ECPrivkey
+import bedrock_ecc as ecc
+from bedrock_ecc import ECPrivkey
 
-from electrum import SimpleConfig
-from electrum.lnmsg import decode_msg, OnionWireSerializer
-from electrum.lnonion import (
+from bedrock import SimpleConfig
+from bedrock.lnmsg import decode_msg, OnionWireSerializer
+from bedrock.lnonion import (
     OnionHopsDataSingle, OnionPacket, process_onion_packet, get_bolt04_onion_key, encrypt_onionmsg_data_tlv,
     get_shared_secrets_along_route, new_onion_packet, ONION_MESSAGE_LARGE_SIZE, HOPS_DATA_SIZE, InvalidPayloadSize,
     encrypt_hops_recipient_data, blinding_privkey, decrypt_onionmsg_data_tlv)
-from electrum.crypto import get_ecdh, privkey_to_pubkey
-from electrum.lntransport import LNPeerAddr
-from electrum.lnutil import (LnFeatures, Keypair, MIN_FINAL_CLTV_DELTA_ACCEPTED, REMOTE,
+from bedrock.crypto import get_ecdh, privkey_to_pubkey
+from bedrock.lntransport import LNPeerAddr
+from bedrock.lnutil import (LnFeatures, Keypair, MIN_FINAL_CLTV_DELTA_ACCEPTED, REMOTE,
                              MIN_FINAL_CLTV_DELTA_BUFFER_INVOICE)
-from electrum.onion_message import (
+from bedrock.onion_message import (
     create_blinded_path, OnionMessageManager, NoRouteFound, Timeout,
     create_route_to_introduction_point, get_blinded_paths_to_me, NoOnionMessagePeers
 )
-from electrum.util import bfh, read_json_file, OldTaskGroup, get_asyncio_loop
-from electrum.logging import console_stderr_handler
+from bedrock.util import bfh, read_json_file, OldTaskGroup, get_asyncio_loop
+from bedrock.logging import console_stderr_handler
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from .test_lnpeer import TestPeer, inject_chan_into_gossipdb
 
 
@@ -60,7 +60,7 @@ BLINDING_OVERRIDE_SECRET = bfh(ALICE_TLVS['path_key_override_secret'])
 SESSION_KEY = bfh(test_vectors['generate']['session_key'])
 
 
-class TestOnionMessage(ElectrumTestCase):
+class TestOnionMessage(BedrockTestCase):
 
     def test_path_pubkeys_blinded_path_appended(self):
 
@@ -112,7 +112,7 @@ class TestOnionMessage(ElectrumTestCase):
         self.assertEqual(packet.to_bytes(), ONION_MESSAGE_PACKET)
 
     def test_onion_message_payload_size(self):
-        # Note: payload size is not _strictly_ limited to (1300+66, 32768+66), but Electrum only generates these sizes
+        # Note: payload size is not _strictly_ limited to (1300+66, 32768+66), but Bedrock only generates these sizes
         # However, the spec allows for other payload sizes.
         # https://github.com/lightning/bolts/blob/master/04-onion-routing.md
         # "SHOULD set onion_message_packet len to 1366 or 32834."
@@ -291,7 +291,7 @@ class MockPeer:
             self.on_send_message(*args, **kwargs)
 
 
-class TestOnionMessageManager(ElectrumTestCase):
+class TestOnionMessageManager(BedrockTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -300,7 +300,7 @@ class TestOnionMessageManager(ElectrumTestCase):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
         def keypair(privkey: ECPrivkey):
             priv = privkey.get_secret_bytes()
@@ -336,7 +336,7 @@ class TestOnionMessageManager(ElectrumTestCase):
             key=rkey)
 
         t3_result = await t3
-        self.assertEqual(t3_result, ({'path_id': {'data': b'electrum' + rkey}}, {}))
+        self.assertEqual(t3_result, ({'path_id': {'data': b'bedrock' + rkey}}, {}))
 
     async def run_test4(self, t, rkey):
         t4 = t.submit_send(
@@ -345,7 +345,7 @@ class TestOnionMessageManager(ElectrumTestCase):
             key=rkey)
 
         t4_result = await t4
-        self.assertEqual(t4_result, ({'path_id': {'data': b'electrum' + rkey}}, {}))
+        self.assertEqual(t4_result, ({'path_id': {'data': b'bedrock' + rkey}}, {}))
 
     async def run_test5(self, t):
         t5 = t.submit_send(
@@ -366,7 +366,7 @@ class TestOnionMessageManager(ElectrumTestCase):
         )
 
         t6_result = await t6
-        self.assertEqual(t6_result, ({'path_id': {'data': b'electrum' + rkey}}, {}))
+        self.assertEqual(t6_result, ({'path_id': {'data': b'bedrock' + rkey}}, {}))
 
     async def test_request_and_reply(self):
         n = MockNetwork(config=self.config)
@@ -383,11 +383,11 @@ class TestOnionMessageManager(ElectrumTestCase):
             time.sleep(2*TIME_STEP)
 
         def withreply(key, *args, **kwargs):
-            t.on_onion_message_received({'path_id': {'data': b'electrum' + key}}, {})
+            t.on_onion_message_received({'path_id': {'data': b'bedrock' + key}}, {})
 
         def slowwithreply(key, *args, **kwargs):
             time.sleep(2*TIME_STEP)
-            t.on_onion_message_received({'path_id': {'data': b'electrum' + key}}, {})
+            t.on_onion_message_received({'path_id': {'data': b'bedrock' + key}}, {})
 
         rkey1 = bfh('0102030405060708')
         rkey2 = bfh('0102030405060709')
@@ -555,7 +555,7 @@ class TestOnionMessageUtils(TestPeer):
                 )
 
         # patch is_onion_message_node so we don't have to inject node announcements
-        with patch('electrum.onion_message.is_onion_message_node', return_value=True):
+        with patch('bedrock.onion_message.is_onion_message_node', return_value=True):
             r = create_route_to_introduction_point(alice, blinded_path, introduction_point, session_key)
         peer, path_key, hops_data, blinded_node_ids = r
         # alice hands the onion over to bob

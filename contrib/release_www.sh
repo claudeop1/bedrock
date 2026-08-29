@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 # env vars:
-# - WWW_DIR: path to "electrum-web" git clone
+# - WWW_DIR: path to "bedrock-web" git clone
 # - for signing the version announcement file:
-#   - ELECTRUM_SIGNING_ADDRESS (required)
-#   - ELECTRUM_SIGNING_WALLET (required)
+#   - BEDROCK_SIGNING_ADDRESS (required)
+#   - BEDROCK_SIGNING_WALLET (required)
 #
 
 set -e
@@ -26,15 +26,15 @@ fi
 
 
 if [ -z "$WWW_DIR" ] ; then
-    WWW_DIR=/opt/electrum-web
+    WWW_DIR=/opt/bedrock-web
 fi
 
-if [ -z "$ELECTRUM_SIGNING_WALLET" ] || [ -z "$ELECTRUM_SIGNING_ADDRESS" ]; then
-    echo "You need to set env vars ELECTRUM_SIGNING_WALLET and ELECTRUM_SIGNING_ADDRESS!"
+if [ -z "$BEDROCK_SIGNING_WALLET" ] || [ -z "$BEDROCK_SIGNING_ADDRESS" ]; then
+    echo "You need to set env vars BEDROCK_SIGNING_WALLET and BEDROCK_SIGNING_ADDRESS!"
     exit 1
 fi
 
-VERSION=$("$CONTRIB"/print_electrum_version.py)
+VERSION=$("$CONTRIB"/print_bedrock_version.py)
 info "VERSION: $VERSION"
 
 ANDROID_VERSIONCODE_NULLARCH=$("$CONTRIB"/android/get_apk_versioncode.py "null")
@@ -46,14 +46,14 @@ set -x
 info "updating www repo"
 ./contrib/make_download "$WWW_DIR"
 info "signing the version announcement file"
-sig=$(./run_electrum -o signmessage "$ELECTRUM_SIGNING_ADDRESS" "$VERSION" -w "$ELECTRUM_SIGNING_WALLET")
+sig=$(./run_bedrock -o signmessage "$BEDROCK_SIGNING_ADDRESS" "$VERSION" -w "$BEDROCK_SIGNING_WALLET")
 # note: the contents of "extradata" are currently not signed. We could add another field, extradata_sigs,
 #       containing signature(s) for "extradata". extradata, being json, would have to be canonically
 #       serialized before signing.
 cat <<EOF > "$WWW_DIR"/version
 {
     "version": "$VERSION",
-    "signatures": {"$ELECTRUM_SIGNING_ADDRESS": "$sig"},
+    "signatures": {"$BEDROCK_SIGNING_ADDRESS": "$sig"},
     "extradata": {
         "android_versioncode_nullarch": $ANDROID_VERSIONCODE_NULLARCH
     }

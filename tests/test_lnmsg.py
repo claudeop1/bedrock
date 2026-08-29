@@ -1,21 +1,21 @@
 import io
 import os
 
-from electrum.lnmsg import (read_bigsize_int, write_bigsize_int, FieldEncodingNotMinimal,
+from bedrock.lnmsg import (read_bigsize_int, write_bigsize_int, FieldEncodingNotMinimal,
                             UnexpectedEndOfStream, LNSerializer, UnknownMandatoryTLVRecordType,
                             MalformedMsg, MsgTrailingGarbage, MsgInvalidFieldOrder, encode_msg,
                             decode_msg, UnexpectedFieldSizeForEncoder, OnionWireSerializer,
                             UnknownMsgType, _tlv_merkle_root, _read_tlv_record)
-from electrum.lnonion import OnionRoutingFailure
-from electrum.util import bfh, read_json_file
-from electrum.lnutil import ShortChannelID, LnFeatures
-from electrum.channel_db import NodeInfo
-from electrum import constants
+from bedrock.lnonion import OnionRoutingFailure
+from bedrock.util import bfh, read_json_file
+from bedrock.lnutil import ShortChannelID, LnFeatures
+from bedrock.channel_db import NodeInfo
+from bedrock import constants
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 
 
-class TestLNMsg(ElectrumTestCase):
+class TestLNMsg(BedrockTestCase):
     TESTNET = True
 
     def test_write_bigsize_int(self):

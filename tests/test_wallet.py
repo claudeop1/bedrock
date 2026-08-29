@@ -10,22 +10,22 @@ import asyncio
 from unittest import mock
 from pathlib import Path
 
-from electrum.storage import WalletStorage
-from electrum.wallet_db import FINAL_SEED_VERSION
-from electrum.wallet import (Abstract_Wallet, Standard_Wallet, create_new_wallet,
+from bedrock.storage import WalletStorage
+from bedrock.wallet_db import FINAL_SEED_VERSION
+from bedrock.wallet import (Abstract_Wallet, Standard_Wallet, create_new_wallet,
                              Imported_Wallet, Wallet)
-from electrum.exchange_rate import ExchangeBase, FxThread
-from electrum.util import TxMinedInfo, InvalidPassword
-from electrum.bitcoin import COIN
-from electrum.wallet_db import WalletDB, JsonDB
-from electrum.simple_config import SimpleConfig
-from electrum import util, storage
-from electrum.daemon import Daemon
-from electrum.invoices import PR_UNPAID, PR_PAID, PR_UNCONFIRMED
-from electrum.transaction import tx_from_any
-from electrum.address_synchronizer import TX_HEIGHT_UNCONFIRMED
+from bedrock.exchange_rate import ExchangeBase, FxThread
+from bedrock.util import TxMinedInfo, InvalidPassword
+from bedrock.bitcoin import COIN
+from bedrock.wallet_db import WalletDB, JsonDB
+from bedrock.simple_config import SimpleConfig
+from bedrock import util, storage
+from bedrock.daemon import Daemon
+from bedrock.invoices import PR_UNPAID, PR_PAID, PR_UNCONFIRMED
+from bedrock.transaction import tx_from_any
+from bedrock.address_synchronizer import TX_HEIGHT_UNCONFIRMED
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from . import restore_wallet_from_text__for_unittest
 
 
@@ -39,13 +39,13 @@ class FakeSynchronizer(object):
         self.store.append(address)
 
 
-class WalletTestCase(ElectrumTestCase):
+class WalletTestCase(BedrockTestCase):
 
     def setUp(self):
         super(WalletTestCase, self).setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
-        self.wallet_path = os.path.join(self.electrum_path, "somewallet")
+        self.wallet_path = os.path.join(self.bedrock_path, "somewallet")
 
         self._saved_stdout = sys.stdout
         self._stdout_buffer = StringIO()
@@ -204,7 +204,7 @@ class FakeWallet:
 txid = 'abc'
 ccy = 'TEST'
 
-class TestFiat(ElectrumTestCase):
+class TestFiat(BedrockTestCase):
     def setUp(self):
         super().setUp()
         self.value_sat = COIN
@@ -236,7 +236,7 @@ class TestFiat(ElectrumTestCase):
         self.assertNotIn(ccy, self.fiat_value)
 
 
-class TestHistoryExport(ElectrumTestCase):
+class TestHistoryExport(BedrockTestCase):
     TESTNET = True
 
     def setUp(self):
@@ -245,15 +245,15 @@ class TestHistoryExport(ElectrumTestCase):
         self.patch_timezone.start()
         time.tzset()
         super(TestHistoryExport, self).setUp()
-        shutil.copytree(Path(__file__).parent / "fiat_fx_data", Path(self.electrum_path) / "cache")
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        shutil.copytree(Path(__file__).parent / "fiat_fx_data", Path(self.bedrock_path) / "cache")
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
     def tearDown(self):
         super(TestHistoryExport, self).tearDown()
         self.patch_timezone.stop()
         time.tzset()
 
-    @mock.patch('electrum.wallet.run_hook')
+    @mock.patch('bedrock.wallet.run_hook')
     @mock.patch.object(storage.WalletStorage, 'write')
     @mock.patch.object(storage.WalletStorage, 'append')
     async def test_export_history_to_file(self, _mock_append, _mock_write, mock_run_hook):
@@ -275,7 +275,7 @@ class TestHistoryExport(ElectrumTestCase):
             f'history_with_fx_{test_wallet_name}.json',
         )
         for filename in testcases:
-            test_export_path = (Path(self.electrum_path) / filename).as_posix()
+            test_export_path = (Path(self.bedrock_path) / filename).as_posix()
             is_csv = filename.endswith('.csv')
             fx = daemon.fx if 'with_fx' in filename else None
             test_wallet.export_history_to_file(
@@ -356,7 +356,7 @@ class TestCreateRestoreWallet(WalletTestCase):
         self.assertEqual(text, wallet.keystore.get_master_public_key())
         self.assertEqual('bc1q2ccr34wzep58d4239tl3x3734ttle92a8srmuw', wallet.get_receiving_addresses()[0])
 
-    async def test_restore_wallet_from_text_xkey_that_is_also_a_valid_electrum_seed_by_chance(self):
+    async def test_restore_wallet_from_text_xkey_that_is_also_a_valid_bedrock_seed_by_chance(self):
         text = 'yprvAJBpuoF4FKpK92ofzQ7ge6VJMtorow3maAGPvPGj38ggr2xd1xCrC9ojUVEf9jhW5L9SPu6fU2U3o64cLrRQ83zaQGNa6YP3ajZS6hHNPXj'
         d = restore_wallet_from_text__for_unittest(text, path=self.wallet_path, gap_limit=1, config=self.config)
         wallet = d['wallet']  # type: Standard_Wallet

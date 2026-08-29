@@ -6,29 +6,29 @@ from unittest import mock
 from decimal import Decimal
 from typing import Optional, Sequence
 
-from electrum.address_synchronizer import TX_HEIGHT_LOCAL
-from electrum import bitcoin
-import electrum.trampoline
-from electrum.channel_db import UpdateStatus
-from electrum.lnutil import RECEIVED, SENT, MIN_FINAL_CLTV_DELTA_ACCEPTED, serialize_htlc_key, LnFeatures, HTLCOwner, PaymentFailure
-from electrum.logging import console_stderr_handler
-from electrum.lnmsg import decode_msg
-from electrum.lnrouter import RouteEdge
-from electrum.bolt11 import encode_bolt11_invoice, BOLT11Addr
-from electrum.lntransport import LNPeerAddr
-from electrum.invoices import LN_EXPIRY_NEVER, PR_UNPAID, PR_INFLIGHT, Invoice
-from electrum.lnpeer import Peer
-from electrum.lnchannel import Channel, ChannelState
-from electrum.lnonion import OnionPacket, OnionRoutingFailure, OnionFailureCode
-from electrum.mpp_split import SplitConfig, SplitConfigRating
-from electrum.crypto import sha256
-from electrum.simple_config import SimpleConfig
+from bedrock.address_synchronizer import TX_HEIGHT_LOCAL
+from bedrock import bitcoin
+import bedrock.trampoline
+from bedrock.channel_db import UpdateStatus
+from bedrock.lnutil import RECEIVED, SENT, MIN_FINAL_CLTV_DELTA_ACCEPTED, serialize_htlc_key, LnFeatures, HTLCOwner, PaymentFailure
+from bedrock.logging import console_stderr_handler
+from bedrock.lnmsg import decode_msg
+from bedrock.lnrouter import RouteEdge
+from bedrock.bolt11 import encode_bolt11_invoice, BOLT11Addr
+from bedrock.lntransport import LNPeerAddr
+from bedrock.invoices import LN_EXPIRY_NEVER, PR_UNPAID, PR_INFLIGHT, Invoice
+from bedrock.lnpeer import Peer
+from bedrock.lnchannel import Channel, ChannelState
+from bedrock.lnonion import OnionPacket, OnionRoutingFailure, OnionFailureCode
+from bedrock.mpp_split import SplitConfig, SplitConfigRating
+from bedrock.crypto import sha256
+from bedrock.simple_config import SimpleConfig
 
-from . import ElectrumTestCase, lnhelpers
+from . import BedrockTestCase, lnhelpers
 from .lnhelpers import create_test_channels
 
 
-class TestLNWallet(ElectrumTestCase):
+class TestLNWallet(BedrockTestCase):
     TESTNET = True
     TEST_ANCHOR_CHANNELS = True
 
@@ -128,14 +128,14 @@ class TestLNWallet(ElectrumTestCase):
         wallet._add_channel(chan_r)
 
         # only trampoline_peer is a known trampoline forwarder
-        electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
+        bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS = {
             'trampoline_peer': LNPeerAddr(
                 host="127.0.0.1",
                 port=9735,
                 pubkey=trampoline_pubkey,
             ),
         }
-        self.addCleanup(lambda: electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS.clear())
+        self.addCleanup(lambda: bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS.clear())
 
         amount_msat = 100_000
 
@@ -143,7 +143,7 @@ class TestLNWallet(ElectrumTestCase):
         payment_hash = wallet.create_payment_info(amount_msat=amount_msat)
         pi = wallet.get_payment_info(payment_hash, direction=RECEIVED)
         self.assertFalse(
-            pi.invoice_features.supports(LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_ELECTRUM),
+            pi.invoice_features.supports(LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_BEDROCK),
             "trampoline bit should be stripped when not all peers are trampoline",
         )
 
@@ -158,7 +158,7 @@ class TestLNWallet(ElectrumTestCase):
         payment_hash = wallet.create_payment_info(amount_msat=amount_msat)
         pi = wallet.get_payment_info(payment_hash, direction=RECEIVED)
         self.assertFalse(
-            pi.invoice_features.supports(LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_ELECTRUM),
+            pi.invoice_features.supports(LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_BEDROCK),
             "trampoline feature should not be set if we use trampoline but one peer is not a trampoline",
         )
 
@@ -171,7 +171,7 @@ class TestLNWallet(ElectrumTestCase):
         self.assertFalse(wallet.uses_trampoline())
 
         # all peers trampoline: we signal trampoline support, even with trampoline disabled
-        electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS['regular_peer'] = LNPeerAddr(
+        bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS['regular_peer'] = LNPeerAddr(
             host="127.0.0.1",
             port=9735,
             pubkey=regular_pubkey,
@@ -180,7 +180,7 @@ class TestLNWallet(ElectrumTestCase):
         payment_hash2 = wallet.create_payment_info(amount_msat=amount_msat)
         pi2 = wallet.get_payment_info(payment_hash2, direction=RECEIVED)
         self.assertTrue(
-            pi2.invoice_features.supports(LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_ELECTRUM),
+            pi2.invoice_features.supports(LnFeatures.OPTION_TRAMPOLINE_ROUTING_OPT_BEDROCK),
             "trampoline bit should be present when all peers are trampoline",
         )
 
@@ -190,7 +190,7 @@ class TestLNWallet(ElectrumTestCase):
         self.assertEqual(hint_node_ids2, {trampoline_pubkey, regular_pubkey})
 
         # assert only trampoline peers are included in r_tags if the invoice_features signal trampoline
-        del electrum.trampoline._TRAMPOLINE_NODES_UNITTESTS['regular_peer']
+        del bedrock.trampoline._TRAMPOLINE_NODES_UNITTESTS['regular_peer']
         wallet.clear_invoices_cache()
         lnaddr3, _ = wallet.get_bolt11_invoice(payment_info=pi2, message='test', fallback_address=None)
         hint_node_ids3 = {route[0][0] for route in lnaddr3.get_routing_info('r')}
@@ -305,7 +305,7 @@ class TestLNWallet(ElectrumTestCase):
 
         wallet._cleanup_failed_jit_channel = mock.AsyncMock()
 
-        with mock.patch('electrum.lnworker.LN_P2P_NETWORK_TIMEOUT', 0.01):
+        with mock.patch('bedrock.lnworker.LN_P2P_NETWORK_TIMEOUT', 0.01):
             with self.assertRaises(OnionRoutingFailure):
                 await wallet.open_channel_just_in_time(
                     next_peer=next_peer,
@@ -337,8 +337,8 @@ class TestLNWallet(ElectrumTestCase):
 
         wallet._cleanup_failed_jit_channel = mock.AsyncMock()
 
-        with mock.patch('electrum.lnworker.ZEROCONF_TIMEOUT', 0.01), \
-             mock.patch('electrum.lnworker.asyncio.sleep', new_callable=mock.AsyncMock):
+        with mock.patch('bedrock.lnworker.ZEROCONF_TIMEOUT', 0.01), \
+             mock.patch('bedrock.lnworker.asyncio.sleep', new_callable=mock.AsyncMock):
              with self.assertRaises(OnionRoutingFailure):
                 await wallet.open_channel_just_in_time(
                     next_peer=next_peer,

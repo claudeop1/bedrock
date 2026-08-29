@@ -2,27 +2,27 @@ from io import StringIO
 import os
 import sys
 
-from electrum.bitcoin import address_to_script
-from electrum.fee_policy import FixedFeePolicy
-from electrum.simple_config import SimpleConfig
-from electrum.storage import WalletStorage
-from electrum.transaction import PartialTxOutput
-from electrum.wallet import Wallet
-from electrum.wallet_db import WalletDB
+from bedrock.bitcoin import address_to_script
+from bedrock.fee_policy import FixedFeePolicy
+from bedrock.simple_config import SimpleConfig
+from bedrock.storage import WalletStorage
+from bedrock.transaction import PartialTxOutput
+from bedrock.wallet import Wallet
+from bedrock.wallet_db import WalletDB
 
-from electrum.plugins.timelock_recovery.timelock_recovery import TimelockRecoveryContext, TimelockRecoveryPlugin
+from bedrock.plugins.timelock_recovery.timelock_recovery import TimelockRecoveryContext, TimelockRecoveryPlugin
 
-from .. import ElectrumTestCase
+from .. import BedrockTestCase
 
 
-class TestTimelockRecovery(ElectrumTestCase):
+class TestTimelockRecovery(BedrockTestCase):
     TESTNET = True
 
     def setUp(self):
         super(TestTimelockRecovery, self).setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
-        self.wallet_path = os.path.join(self.electrum_path, "timelock_recovery_wallet")
+        self.wallet_path = os.path.join(self.bedrock_path, "timelock_recovery_wallet")
 
         self._saved_stdout = sys.stdout
         self._stdout_buffer = StringIO()

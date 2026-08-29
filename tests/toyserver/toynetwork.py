@@ -1,15 +1,15 @@
-# Copyright (C) 2026 The Electrum developers
+# Copyright (C) 2026 The Bedrock developers
 # Distributed under the MIT software license, see the accompanying
 # file LICENCE or http://www.opensource.org/licenses/mit-license.php
 
 import asyncio
 
-from electrum import blockchain, util
-from electrum.blockchain import Blockchain
-from electrum.interface import Interface, ServerAddr
-from electrum.simple_config import SimpleConfig
-from electrum.transaction import Transaction
-from electrum.util import OldTaskGroup
+from bedrock import blockchain, util
+from bedrock.blockchain import Blockchain
+from bedrock.interface import Interface, ServerAddr
+from bedrock.simple_config import SimpleConfig
+from bedrock.transaction import Transaction
+from bedrock.util import OldTaskGroup
 
 from .toyserver import ToyServer
 

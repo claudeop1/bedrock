@@ -1,14 +1,14 @@
-from electrum.coinchooser import CoinChooserPrivacy
-from electrum.util import NotEnoughFunds
-from electrum.transaction import PartialTxInput, TxOutpoint, Transaction, PartialTxOutput
-from electrum.fee_policy import FeePolicy, FixedFeePolicy
+from bedrock.coinchooser import CoinChooserPrivacy
+from bedrock.util import NotEnoughFunds
+from bedrock.transaction import PartialTxInput, TxOutpoint, Transaction, PartialTxOutput
+from bedrock.fee_policy import FeePolicy, FixedFeePolicy
 from functools import partial
 from typing import Optional
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 
 
-class TestCoinChooser(ElectrumTestCase):
+class TestCoinChooser(BedrockTestCase):
 
     @staticmethod
     def get_dummy_txin_1_284_474_sat() -> PartialTxInput:

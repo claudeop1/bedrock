@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from electrum import lnurl
+from bedrock import lnurl
 
 
 class TestLnurl(TestCase):

@@ -1,20 +1,20 @@
 import os
 
-from electrum.simple_config import SimpleConfig
-from electrum.wallet import Abstract_Wallet
-from electrum.daemon import Daemon
+from bedrock.simple_config import SimpleConfig
+from bedrock.wallet import Abstract_Wallet
+from bedrock.daemon import Daemon
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from . import restore_wallet_from_text__for_unittest
 
 
-class TestContacts(ElectrumTestCase):
+class TestContacts(BedrockTestCase):
     TESTNET = True
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
-        self.wallet_path = os.path.join(self.electrum_path, "somewallet1")
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
+        self.wallet_path = os.path.join(self.bedrock_path, "somewallet1")
 
     async def test_saving_contacts(self):
         text = 'cross end slow expose giraffe fuel track awake turtle capital ranch pulp'

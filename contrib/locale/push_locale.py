@@ -20,7 +20,7 @@ except ImportError as e:
 project_root = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 os.chdir(project_root)
 
-locale_dir = os.path.join(project_root, "electrum", "locale")
+locale_dir = os.path.join(project_root, "bedrock", "locale")
 if not os.path.exists(os.path.join(locale_dir, "locale")):
     raise Exception(f"missing git submodule for locale? {locale_dir}")
 
@@ -51,7 +51,7 @@ if not os.path.exists(build_dir):
     os.mkdir(build_dir)
 
 # add .py files
-files_list = glob.glob("electrum/**/*.py", recursive=True)
+files_list = glob.glob("bedrock/**/*.py", recursive=True)
 files_list = sorted(files_list)  # makes output deterministic across CI runs
 with open(f"{build_dir}/app.fil", "w", encoding="utf-8") as f:
     for item in files_list:
@@ -65,7 +65,7 @@ cmd = ["xgettext", "--from-code", "UTF-8", "--language", "Python", "--no-wrap", 
 subprocess.check_output(cmd)
 
 # add QML translations
-files_list = glob.glob("electrum/gui/qml/**/*.qml", recursive=True)
+files_list = glob.glob("bedrock/gui/qml/**/*.qml", recursive=True)
 files_list = sorted(files_list)  # makes output deterministic across CI runs
 with open(f"{build_dir}/qml.lst", "w", encoding="utf-8") as f:
     for item in files_list:
@@ -83,8 +83,8 @@ subprocess.check_output(cmd)
 
 print("Fixing some paths in messages_qml.pot")
 #  sed from " ../../gui/qml/"
-#      to   " electrum/gui/qml/"
-cmd = ["sed", "-i", r"s/ ..\/..\/gui\/qml\// electrum\/gui\/qml\//g", f"{build_dir}/messages_qml.pot"]
+#      to   " bedrock/gui/qml/"
+cmd = ["sed", "-i", r"s/ ..\/..\/gui\/qml\// bedrock\/gui\/qml\//g", f"{build_dir}/messages_qml.pot"]
 subprocess.check_output(cmd)
 
 cmd = ["msgcat", "-u", "-o", f"{build_dir}/messages.pot", f"{build_dir}/messages_gettext.pot", f"{build_dir}/messages_qml.pot"]
@@ -101,13 +101,13 @@ with open(f"{build_dir}/messages.pot", "r", encoding="utf-8") as f:
 with open(f"{build_dir}/messages_customheader.pot", "w", encoding="utf-8") as f:
     f.write('''msgid ""\n''')
     f.write('''msgstr ""\n''')
-    f.write(f'''"X-Electrum-SourceStringCount: {cnt_src_strings}"\n''')
+    f.write(f'''"X-Bedrock-SourceStringCount: {cnt_src_strings}"\n''')
 cmd = ["msgcat", "-u", "-o", f"{build_dir}/messages.pot", f"{build_dir}/messages.pot", f"{build_dir}/messages_customheader.pot"]
 print('Add custom header to template')
 subprocess.check_output(cmd)
 
 # prepare uploading to crowdin
-os.chdir(os.path.join(project_root, "electrum"))
+os.chdir(os.path.join(project_root, "bedrock"))
 
 crowdin_api_key = None
 filename = os.path.expanduser('~/.crowdin_api_key')
@@ -121,10 +121,10 @@ if not crowdin_api_key:
     sys.exit(1)
 print('Found crowdin_api_key. Will push updated source-strings to crowdin.')
 
-crowdin_project_id = 20482  # for "Electrum" project on crowdin
+crowdin_project_id = 20482  # for "Bedrock" project on crowdin
 locale_file_name = os.path.join(build_dir, "messages.pot")
 crowdin_file_name = "messages.pot"
-crowdin_file_id = 68  # for "/electrum-client/messages.pot"
+crowdin_file_id = 68  # for "/bedrock-client/messages.pot"
 global_headers = {"Authorization": "Bearer {}".format(crowdin_api_key)}
 
 # client.storages.add_storage(f)
@@ -154,7 +154,7 @@ url = f'https://api.crowdin.com/api/v2/projects/{crowdin_project_id}/translation
 headers = {**global_headers, **{"content-type": "application/json"}}
 json_data = {
     #"exportApprovedOnly": True,  # only include translated-strings approved by users with "Proofreader" permission
-}  # note: these settings MUST be verified by electrum-locale/update.py again, at download-time.
+}  # note: these settings MUST be verified by bedrock-locale/update.py again, at download-time.
 response = requests.request("POST", url, json=json_data, headers=headers)
 response.raise_for_status()
 print("", "translations.build_crowdin_project_translation:", "-" * 20, response.text, "-" * 20, sep="\n")

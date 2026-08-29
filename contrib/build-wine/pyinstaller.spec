@@ -9,12 +9,12 @@ if TYPE_CHECKING:
     from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
 
 
-PYPKG="electrum"
-MAIN_SCRIPT="run_electrum"
-PROJECT_ROOT = "C:/electrum"
-ICONS_FILE=f"{PROJECT_ROOT}/{PYPKG}/gui/icons/electrum.ico"
+PYPKG="bedrock"
+MAIN_SCRIPT="run_bedrock"
+PROJECT_ROOT = "C:/bedrock"
+ICONS_FILE=f"{PROJECT_ROOT}/{PYPKG}/gui/icons/bedrock.ico"
 
-cmdline_name = os.environ.get("ELECTRUM_CMDLINE_NAME")
+cmdline_name = os.environ.get("BEDROCK_CMDLINE_NAME")
 if not cmdline_name:
     raise Exception('no name')
 
@@ -123,7 +123,7 @@ exe_standalone = EXE(
     upx=False,
     icon=ICONS_FILE,
     console=False)
-    # console=True makes an annoying black box pop up, but it does make Electrum output command line commands, with this turned off no output will be given but commands can still be used
+    # console=True makes an annoying black box pop up, but it does make Bedrock output command line commands, with this turned off no output will be given but commands can still be used
 
 exe_portable = EXE(
     pyz,

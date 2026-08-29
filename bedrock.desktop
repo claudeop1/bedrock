@@ -1,0 +1,24 @@
+# If you want Bedrock to appear in a Linux app launcher ("start menu"), install this by doing:
+# sudo desktop-file-install bedrock.desktop
+# Note: This assumes $HOME/.local/bin is in your $PATH
+
+[Desktop Entry]
+Comment=Lightweight Bitcoin Client
+Exec=bedrock %u
+GenericName[en_US]=Bitcoin Wallet
+GenericName=Bitcoin Wallet
+Icon=bedrock
+Name[en_US]=Bedrock Bitcoin Wallet
+Name=Bedrock Bitcoin Wallet
+Categories=Finance;Network;
+StartupNotify=true
+StartupWMClass=bedrock
+Terminal=false
+Type=Application
+MimeType=x-scheme-handler/bitcoin;x-scheme-handler/lightning;x-scheme-handler/lnurlp;x-scheme-handler/lnurlw;
+Actions=Testnet;
+Keywords=crypto;currency;BTC
+
+[Desktop Action Testnet]
+Exec=bedrock --testnet %u
+Name=Testnet mode

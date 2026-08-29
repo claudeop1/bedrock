@@ -4,14 +4,14 @@ from binascii import unhexlify, hexlify
 import pprint
 import unittest
 
-from electrum.bolt11 import shorten_amount, unshorten_amount, BOLT11Addr, encode_bolt11_invoice, decode_bolt11_invoice
-from electrum.segwit_addr import bech32_encode, bech32_decode
-from electrum import segwit_addr
-from electrum.lnutil import UnknownEvenFeatureBits, LnFeatures, IncompatibleLightningFeatures
-from electrum import constants
-from electrum.util import bfh, ShortID
+from bedrock.bolt11 import shorten_amount, unshorten_amount, BOLT11Addr, encode_bolt11_invoice, decode_bolt11_invoice
+from bedrock.segwit_addr import bech32_encode, bech32_decode
+from bedrock import segwit_addr
+from bedrock.lnutil import UnknownEvenFeatureBits, LnFeatures, IncompatibleLightningFeatures
+from bedrock import constants
+from bedrock.util import bfh, ShortID
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 
 
 RHASH=unhexlify('0001020304050607080900010203040506070809000102030405060708090102')
@@ -21,7 +21,7 @@ PRIVKEY=unhexlify('e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db
 PUBKEY=unhexlify('03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad')
 
 
-class TestBolt11(ElectrumTestCase):
+class TestBolt11(BedrockTestCase):
     def test_shorten_amount(self):
         tests = {
             Decimal(10)/10**12: '10p',

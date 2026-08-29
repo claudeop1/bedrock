@@ -1,18 +1,18 @@
 from datetime import datetime
 from unittest.mock import patch
 
-from electrum.gui.qml.qetransactionlistmodel import QETransactionListModel
+from bedrock.gui.qml.qetransactionlistmodel import QETransactionListModel
 
-from .. import ElectrumTestCase
+from .. import BedrockTestCase
 
 
-class TestQETransactionListModel(ElectrumTestCase):
+class TestQETransactionListModel(BedrockTestCase):
 
     def test_get_section_by_timestamp(self):
         f = QETransactionListModel.get_section_by_timestamp
 
         mock_today = datetime(2023, 6, 15, 0, 0, 0, 0)
-        with patch('electrum.gui.qml.qetransactionlistmodel.datetime') as mock_dt:
+        with patch('bedrock.gui.qml.qetransactionlistmodel.datetime') as mock_dt:
             mock_dt.today.return_value = mock_today
             mock_dt.fromtimestamp = datetime.fromtimestamp
 

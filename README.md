@@ -4,26 +4,26 @@
 Licence: MIT Licence
 Author: Thomas Voegtlin
 Language: Python (>= 3.10)
-Homepage: https://electrum.org/
+Homepage: https://bedrock.org/
 ```
 
-[![Build Status](https://github.com/spesmilo/electrum/actions/workflows/builds.yml/badge.svg?branch=master)](https://github.com/spesmilo/electrum/actions/workflows/builds.yml)
-[![Test coverage statistics](https://coveralls.io/repos/github/spesmilo/electrum/badge.svg?branch=master)](https://coveralls.io/github/spesmilo/electrum?branch=master)
-[![Help translate Electrum online](https://d322cqt584bo4o.cloudfront.net/electrum/localized.svg)](https://crowdin.com/project/electrum)
+[![Build Status](https://github.com/spesmilo/bedrock/actions/workflows/builds.yml/badge.svg?branch=master)](https://github.com/spesmilo/bedrock/actions/workflows/builds.yml)
+[![Test coverage statistics](https://coveralls.io/repos/github/spesmilo/bedrock/badge.svg?branch=master)](https://coveralls.io/github/spesmilo/bedrock?branch=master)
+[![Help translate Bedrock online](https://d322cqt584bo4o.cloudfront.net/bedrock/localized.svg)](https://crowdin.com/project/bedrock)
 
 
 ## Getting started
 
-_(If you've come here looking to simply run Electrum,
-[you may download it here](https://electrum.org/#download).)_
+_(If you've come here looking to simply run Bedrock,
+[you may download it here](https://bedrock.org/#download).)_
 
-Electrum itself is pure Python, and so are most of the required dependencies,
+Bedrock itself is pure Python, and so are most of the required dependencies,
 but not everything. The following sections describe how to run from source, but here
 is a TL;DR:
 
 ```
 $ sudo apt-get install libsecp256k1-dev
-$ ELECTRUM_ECC_DONT_COMPILE=1 python3 -m pip install --user ".[gui,crypto]"
+$ BEDROCK_ECC_DONT_COMPILE=1 python3 -m pip install --user ".[gui,crypto]"
 ```
 
 ### Not pure-python dependencies
@@ -41,9 +41,9 @@ For elliptic curve operations,
 [libsecp256k1](https://github.com/bitcoin-core/secp256k1)
 is a required dependency.
 
-If you "pip install" Electrum, by default libsecp will get compiled locally,
-as part of the `electrum-ecc` dependency. This can be opted-out of,
-by setting the `ELECTRUM_ECC_DONT_COMPILE=1` environment variable.
+If you "pip install" Bedrock, by default libsecp will get compiled locally,
+as part of the `bedrock-ecc` dependency. This can be opted-out of,
+by setting the `BEDROCK_ECC_DONT_COMPILE=1` environment variable.
 For the compilation to work, besides a C compiler, you need at least:
 ```
 $ sudo apt-get install automake libtool
@@ -65,28 +65,28 @@ $ sudo apt-get install python3-cryptography
 #### hardware-wallet support
 
 If you would like hardware wallet support,
-[see this](https://github.com/spesmilo/electrum-docs/blob/master/hardware-linux.rst).
+[see this](https://github.com/spesmilo/bedrock-docs/blob/master/hardware-linux.rst).
 
 
 ### Running from tar.gz
 
 If you downloaded the official package (tar.gz), you can run
-Electrum from its root directory without installing it on your
+Bedrock from its root directory without installing it on your
 system; all the pure python dependencies are included in the 'packages'
-directory. To run Electrum from its root directory, just do:
+directory. To run Bedrock from its root directory, just do:
 ```
-$ ./run_electrum
+$ ./run_bedrock
 ```
 
-You can also install Electrum on your system, by running this command:
+You can also install Bedrock on your system, by running this command:
 ```
 $ sudo apt-get install python3-setuptools python3-pip
 $ python3 -m pip install --user .
 ```
 
 This will download and install the Python dependencies used by
-Electrum instead of using the 'packages' directory.
-It will also place an executable named `electrum` in `~/.local/bin`,
+Bedrock instead of using the 'packages' directory.
+It will also place an executable named `bedrock` in `~/.local/bin`,
 so make sure that is on your `PATH` variable.
 
 
@@ -97,8 +97,8 @@ and [for macOS](contrib/osx/README_macos.md))_
 
 Check out the code from GitHub:
 ```
-$ git clone https://github.com/spesmilo/electrum.git
-$ cd electrum
+$ git clone https://github.com/spesmilo/bedrock.git
+$ cd bedrock
 $ git submodule update --init
 ```
 
@@ -110,12 +110,12 @@ $ python3 -m pip install --user -e .
 Create translations (optional):
 ```
 $ sudo apt-get install gettext
-$ ./contrib/locale/build_locale.sh electrum/locale/locale electrum/locale/locale
+$ ./contrib/locale/build_locale.sh bedrock/locale/locale bedrock/locale/locale
 ```
 
-Finally, to start Electrum:
+Finally, to start Bedrock:
 ```
-$ ./run_electrum
+$ ./run_bedrock
 ```
 
 ### Run tests
@@ -148,9 +148,9 @@ Implementing new features, or improving/refactoring the codebase, is of course
 also welcome, but to avoid wasted effort, especially for larger changes,
 we encourage discussing these on the issue tracker or IRC first.
 
-Besides [GitHub](https://github.com/spesmilo/electrum),
-most communication about Electrum development happens on IRC, in the
-`#electrum` channel on Libera Chat. The easiest way to participate on IRC is
-with the web client, [web.libera.chat](https://web.libera.chat/#electrum).
+Besides [GitHub](https://github.com/spesmilo/bedrock),
+most communication about Bedrock development happens on IRC, in the
+`#bedrock` channel on Libera Chat. The easiest way to participate on IRC is
+with the web client, [web.libera.chat](https://web.libera.chat/#bedrock).
 
-Please improve translations on [Crowdin](https://crowdin.com/project/electrum).
+Please improve translations on [Crowdin](https://crowdin.com/project/bedrock).

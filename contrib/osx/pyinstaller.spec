@@ -9,14 +9,14 @@ if TYPE_CHECKING:
     from PyInstaller.building.build_main import Analysis, PYZ, EXE, BUNDLE
 
 
-PACKAGE_NAME='Electrum.app'
-PYPKG='electrum'
-MAIN_SCRIPT='run_electrum'
+PACKAGE_NAME='Bedrock.app'
+PYPKG='bedrock'
+MAIN_SCRIPT='run_bedrock'
 PROJECT_ROOT = os.path.abspath(".")
-ICONS_FILE=f"{PROJECT_ROOT}/{PYPKG}/gui/icons/electrum.icns"
+ICONS_FILE=f"{PROJECT_ROOT}/{PYPKG}/gui/icons/bedrock.icns"
 
 
-VERSION = os.environ.get("ELECTRUM_VERSION")
+VERSION = os.environ.get("BEDROCK_VERSION")
 if not VERSION:
     raise Exception('no version')
 
@@ -139,6 +139,6 @@ app = BUNDLE(
                 'CFBundleURLSchemes': ['bitcoin', 'lightning', 'lnurlp', 'lnurlw', ],
             }],
         'LSMinimumSystemVersion': '11',
-        'NSCameraUsageDescription': 'Electrum would like to access the camera to scan for QR codes',
+        'NSCameraUsageDescription': 'Bedrock would like to access the camera to scan for QR codes',
     },
 )

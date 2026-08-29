@@ -1,9 +1,9 @@
 # Qml GUI
 
-The Qml GUI is used with Electrum on Android devices, since Electrum 4.4.
+The Qml GUI is used with Bedrock on Android devices, since Bedrock 4.4.
 To generate an APK file, follow these instructions.
 
-(note: older versions of Electrum for Android used the "kivy" GUI)
+(note: older versions of Bedrock for Android used the "kivy" GUI)
 
 ## Android binary with Docker
 
@@ -52,7 +52,7 @@ repository.
    You can use the `apkdiff.py` python script (written by the Signal developers) to compare
    the two binaries.
     ```
-    $ python3 contrib/android/apkdiff.py Electrum_apk_that_you_built.apk Electrum_apk_official_release.apk
+    $ python3 contrib/android/apkdiff.py Bedrock_apk_that_you_built.apk Bedrock_apk_official_release.apk
     ```
    This should output `APKs match!`.
 
@@ -71,8 +71,8 @@ in such a case, worth a try clearing it.
 ### How do I deploy on connected phone for quick testing?
 Assuming `adb` is installed:
 ```
-$ adb -d install -r dist/Electrum-*-arm64-v8a-debug.apk
-$ adb shell monkey -p org.electrum.electrum 1
+$ adb -d install -r dist/Bedrock-*-arm64-v8a-debug.apk
+$ adb shell monkey -p org.bedrock.bedrock 1
 ```
 Note `adb install` can take a `--user {userId}` option to install the app for a specific profile.
 Without that, the default is to install to *all* profiles.
@@ -81,10 +81,10 @@ Without that, the default is to install to *all* profiles.
 ### How do I get an interactive shell inside docker?
 ```
 $ docker run -it --rm \
-    -v $PWD:/home/user/wspace/electrum \
+    -v $PWD:/home/user/wspace/bedrock \
     -v $PWD/.buildozer/.gradle:/home/user/.gradle \
-    --workdir /home/user/wspace/electrum \
-    electrum-android-builder-img
+    --workdir /home/user/wspace/bedrock \
+    bedrock-android-builder-img
 ```
 
 
@@ -99,7 +99,7 @@ adb logcat | grep python
 ```
 Better `grep` but fragile because of `cut`:
 ```
-adb logcat | grep -F "`adb shell ps | grep org.electrum.electrum | cut -c14-19`"
+adb logcat | grep -F "`adb shell ps | grep org.bedrock.bedrock | cut -c14-19`"
 ```
 
 
@@ -109,7 +109,7 @@ Install requirements:
 python3 -m pip install ".[qml_gui]"
 ```
 
-Run electrum with the `-g` switch: `electrum -g qml`
+Run bedrock with the `-g` switch: `bedrock -g qml`
 
 Notes:
 
@@ -142,18 +142,18 @@ of Android does not let you access the internal storage of an app without root.
 To pull a file:
 ```
 $ adb shell
-adb$ run-as org.electrum.electrum ls /data/data/org.electrum.electrum/files/data
+adb$ run-as org.bedrock.bedrock ls /data/data/org.bedrock.bedrock/files/data
 adb$ exit
-$ adb exec-out run-as org.electrum.electrum cat /data/data/org.electrum.electrum/files/data/wallets/my_wallet > my_wallet
+$ adb exec-out run-as org.bedrock.bedrock cat /data/data/org.bedrock.bedrock/files/data/wallets/my_wallet > my_wallet
 ```
 To push a file:
 ```
 $ adb push ~/wspace/tmp/my_wallet /data/local/tmp
 $ adb shell
 adb$ ls -la /data/local/tmp
-adb$ run-as org.electrum.testnet.electrum cp /data/local/tmp/my_wallet /data/data/org.electrum.testnet.electrum/files/data/testnet/wallets/
-adb$ run-as org.electrum.testnet.electrum chmod -R 700 /data/data/org.electrum.testnet.electrum/files/data/testnet/wallets
-adb$ run-as org.electrum.testnet.electrum chmod -R u-x,u+X /data/data/org.electrum.testnet.electrum/files/data/testnet/wallets
+adb$ run-as org.bedrock.testnet.bedrock cp /data/local/tmp/my_wallet /data/data/org.bedrock.testnet.bedrock/files/data/testnet/wallets/
+adb$ run-as org.bedrock.testnet.bedrock chmod -R 700 /data/data/org.bedrock.testnet.bedrock/files/data/testnet/wallets
+adb$ run-as org.bedrock.testnet.bedrock chmod -R u-x,u+X /data/data/org.bedrock.testnet.bedrock/files/data/testnet/wallets
 adb$ rm /data/local/tmp/my_wallet
 ```
 
@@ -169,19 +169,19 @@ Run `$ adb shell pm list users` to get a list of all existing users, and take no
 
 Instead of `/data/data/{app.path}`, private app data is stored at `/data/user/{userId}/{app.path}`.
 
-Further, instead of `adb$ run-as org.electrum.electrum`,
-you need `adb$ run-as org.electrum.electrum --user {userId}`.
+Further, instead of `adb$ run-as org.bedrock.bedrock`,
+you need `adb$ run-as org.bedrock.bedrock --user {userId}`.
 
 ### How to investigate diff between binaries if reproducibility fails?
 ```
 cd dist/
-unzip Electrum-*.apk1 -d apk1
+unzip Bedrock-*.apk1 -d apk1
 mkdir apk1/assets/private_mp3/
 tar -xzvf apk1/assets/private.tar --directory apk1/assets/private_mp3/
 mkdir apk1/lib/_libpybundle/
 tar -xzvf apk1/lib/*/libpybundle.so --directory apk1/lib/_libpybundle/
 
-unzip Electrum-*.apk2 -d apk2
+unzip Bedrock-*.apk2 -d apk2
 mkdir apk2/assets/private_mp3/
 tar -xzvf apk2/assets/private.tar --directory apk2/assets/private_mp3/
 mkdir apk2/lib/_libpybundle/
@@ -204,12 +204,12 @@ cat d
 ### How to install apks built by the CI on my phone?
 
 The CI (GitHub Actions) builds apks on a nightly schedule.
-See the [`builds` workflow](https://github.com/spesmilo/electrum/actions/workflows/builds.yml).
-Open the run of interest and download the `electrum-android-*` artifact.
+See the [`builds` workflow](https://github.com/spesmilo/bedrock/actions/workflows/builds.yml).
+Open the run of interest and download the `bedrock-android-*` artifact.
 The apk is built in `debug` mode, and is signed using an ephemeral RSA key.
 
 For tech demo purposes, you can directly install this apk on your phone.
-However, if you already have electrum installed on your phone, Android's TOFU signing model
+However, if you already have bedrock installed on your phone, Android's TOFU signing model
 will not let you upgrade that to the CI apk due to mismatching signing keys. As the CI key
 is ephemeral, it is not even possible to upgrade from an older CI apk to a newer CI apk.
 
@@ -217,5 +217,5 @@ However, it is possible to resign the apk manually with one's own key, using
 e.g. [`apksigner`](https://developer.android.com/studio/command-line/apksigner),
 mutating the apk in place, after which it should be possible to upgrade:
 ```
-apksigner sign --ks ~/wspace/electrum/contrib/android/android_debug.keystore Electrum-*-arm64-v8a-debug.apk
+apksigner sign --ks ~/wspace/bedrock/contrib/android/android_debug.keystore Bedrock-*-arm64-v8a-debug.apk
 ```

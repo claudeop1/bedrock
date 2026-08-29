@@ -1,4 +1,4 @@
-# Copyright (C) 2026 The Electrum developers
+# Copyright (C) 2026 The Bedrock developers
 # Distributed under the MIT software license, see the accompanying
 # file LICENCE or http://www.opensource.org/licenses/mit-license.php
 
@@ -8,14 +8,14 @@ from dataclasses import dataclass, field
 from typing import Callable, Optional
 from unittest import mock
 
-from electrum import util
-from electrum.interface import PaddedRSTransport
-from electrum.simple_config import SimpleConfig
-from electrum.transaction import Transaction, TxOutput, TxOutpoint
-from electrum.util import wait_for2
-from electrum.wallet import Abstract_Wallet
+from bedrock import util
+from bedrock.interface import PaddedRSTransport
+from bedrock.simple_config import SimpleConfig
+from bedrock.transaction import Transaction, TxOutput, TxOutpoint
+from bedrock.util import wait_for2
+from bedrock.wallet import Abstract_Wallet
 
-from .. import ElectrumTestCase, restore_wallet_from_text__for_unittest
+from .. import BedrockTestCase, restore_wallet_from_text__for_unittest
 from .toynetwork import ToyNetwork
 from .toyserver import ToyServer
 
@@ -25,14 +25,14 @@ SEED = "9dk"
 
 @dataclass
 class ToyInstance:
-    """Electrum instance with its own config, network and wallets"""
+    """Bedrock instance with its own config, network and wallets"""
     name: str
     config: SimpleConfig
     network: ToyNetwork
     wallets: list[Abstract_Wallet] = field(default_factory=list)
 
 
-class ToyServerTestCase(ElectrumTestCase):
+class ToyServerTestCase(BedrockTestCase):
     """
     Base class for tests that need a chain: a ToyServer, one or more ToyInstances connected to it,
     and wallets that sync from it.
@@ -73,15 +73,15 @@ class ToyServerTestCase(ElectrumTestCase):
 
     def create_config(self, name: Optional[str] = None) -> SimpleConfig:
         """A config with its own data dir. Subclasses can override this to set custom config vars."""
-        path = os.path.join(self.unittest_base_path, name) if name else self.electrum_path
+        path = os.path.join(self.unittest_base_path, name) if name else self.bedrock_path
         util.make_dir(path)
-        config = SimpleConfig({'electrum_path': path})
+        config = SimpleConfig({'bedrock_path': path})
         config.NETWORK_SKIPMERKLECHECK = True
         config.FEE_POLICY = 'feerate:5000'
         return config
 
     async def create_instance(self, name: str) -> ToyInstance:
-        """An instance is similar to a separate Electrum process, they own independent configs and wallets, they share the server"""
+        """An instance is similar to a separate Bedrock process, they own independent configs and wallets, they share the server"""
         assert name not in self.instances, f"instance {name!r} already exists"
         config = self.create_config(name)
         network = ToyNetwork(config=config)

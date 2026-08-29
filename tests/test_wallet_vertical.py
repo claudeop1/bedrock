@@ -6,26 +6,26 @@ from typing import Sequence
 import asyncio
 import copy
 
-from electrum import bitcoin, keystore, bip32, slip39
-from electrum.wallet_db import WalletDB
-from electrum.storage import WalletStorage
-from electrum import SimpleConfig
-from electrum import util
-from electrum.address_synchronizer import TX_HEIGHT_UNCONFIRMED, TX_HEIGHT_UNCONF_PARENT, TX_HEIGHT_LOCAL, TX_HEIGHT_FUTURE
-from electrum.wallet import (sweep, sweep_preparations, Multisig_Wallet, Standard_Wallet, Imported_Wallet,
+from bedrock import bitcoin, keystore, bip32, slip39
+from bedrock.wallet_db import WalletDB
+from bedrock.storage import WalletStorage
+from bedrock import SimpleConfig
+from bedrock import util
+from bedrock.address_synchronizer import TX_HEIGHT_UNCONFIRMED, TX_HEIGHT_UNCONF_PARENT, TX_HEIGHT_LOCAL, TX_HEIGHT_FUTURE
+from bedrock.wallet import (sweep, sweep_preparations, Multisig_Wallet, Standard_Wallet, Imported_Wallet,
                              Abstract_Wallet, CannotBumpFee, BumpFeeStrategy,
                              TransactionPotentiallyDangerousException,
                              TransactionDangerousException,
                              TxSighashRiskLevel, CannotDoubleSpendTx)
-from electrum.util import bfh, NotEnoughFunds, UnrelatedTransactionException, UserFacingException, TxMinedInfo
-from electrum.fee_policy import FixedFeePolicy
-from electrum.transaction import Transaction, PartialTxOutput, tx_from_any, Sighash
-from electrum.mnemonic import calc_seed_type
-from electrum.network import Network
+from bedrock.util import bfh, NotEnoughFunds, UnrelatedTransactionException, UserFacingException, TxMinedInfo
+from bedrock.fee_policy import FixedFeePolicy
+from bedrock.transaction import Transaction, PartialTxOutput, tx_from_any, Sighash
+from bedrock.mnemonic import calc_seed_type
+from bedrock.network import Network
 
-from electrum.plugins.trustedcoin import trustedcoin
+from bedrock.plugins.trustedcoin import trustedcoin
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from . import restore_wallet_from_text__for_unittest
 
 
@@ -98,19 +98,19 @@ class WalletIntegrityHelper:
 
 def read_test_vector(filename: str):
     import os
-    from electrum.util import read_json_file
+    from bedrock.util import read_json_file
     path = os.path.join(os.path.dirname(__file__), filename)
     data = read_json_file(path)
     return data
 
 
-class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
+class TestWalletKeystoreAddressIntegrityForMainnet(BedrockTestCase):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
-    async def test_electrum_seed_standard(self):
+    async def test_bedrock_seed_standard(self):
         seed_words = 'cycle rocket west magnet parrot shuffle foot correct salt library feed song'
         self.assertEqual(calc_seed_type(seed_words), 'standard')
 
@@ -128,7 +128,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual(w.get_receiving_addresses()[0], '1NNkttn1YvVGdqBW4PR6zvc3Zx3H5owKRf')
         self.assertEqual(w.get_change_addresses()[0], '1KSezYMhAJMWqFbVFB2JshYg69UpmEXR4D')
 
-    async def test_electrum_seed_segwit(self):
+    async def test_bedrock_seed_segwit(self):
         seed_words = 'bitter grass shiver impose acquire brush forget axis eager alone wine silver'
         self.assertEqual(calc_seed_type(seed_words), 'segwit')
 
@@ -149,7 +149,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual('zprvAabC4ncjU4qVMNbpYZ5G4XqmKJoJN3EA4TVCodaPwyvEatrZpVYmWVHfKwS1fdq2uCdPyCmbjAjQ5FzeqHFSGv9KUmUFptTMAcyKzHiUM6Q',
                          ks.get_lightning_xprv(None))
 
-    async def test_electrum_seed_segwit_passphrase(self):
+    async def test_bedrock_seed_segwit_passphrase(self):
         seed_words = 'bitter grass shiver impose acquire brush forget axis eager alone wine silver'
         self.assertEqual(calc_seed_type(seed_words), 'segwit')
 
@@ -170,7 +170,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual('zprvAaoTFrze53KLvVYL8yL5H4sxoBFto98dgfTxFxcBepBPaEWStxpsdYqvNGxskGMTgX11bUtPiVj3aCe2jXFkAJQMi9RmksGBgFVwFM85Gir',
                          ks.get_lightning_xprv(None))
 
-    async def test_electrum_seed_old(self):
+    async def test_bedrock_seed_old(self):
         seed_words = 'powerful random nobody notice nothing important anyway look away hidden message over'
         seed_hex = 'acb740e454c3134901d7c8f16497cc1c'
 
@@ -194,7 +194,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
                 self.assertEqual(w.get_receiving_addresses()[0], '1FJEEB8ihPMbzs2SkLmr37dHyRFzakqUmo')
                 self.assertEqual(w.get_change_addresses()[0], '1KRW8pH6HFHZh889VDq6fEKvmrsmApwNfe')
 
-    async def test_electrum_seed_2fa_legacy_pre27_25words(self):
+    async def test_bedrock_seed_2fa_legacy_pre27_25words(self):
         # pre-version-2.7 2fa seed, containing 25 words
         seed_words = 'bind clever room kidney crucial sausage spy edit canvas soul liquid ribbon slam open alpha suffer gate relax voice carpet law hill woman tonight abstract'
         assert len(seed_words.split()) == 25
@@ -229,7 +229,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual(w.get_receiving_addresses()[0], '3Bw5jczNModhFAbvfwvUHbdGrC2Lh2qRQp')
         self.assertEqual(w.get_change_addresses()[0], '3Ke6pKrmtSyyQaMob1ES4pk8siAAkRmst9')
 
-    async def test_electrum_seed_2fa_legacy_pre27_24words(self):
+    async def test_bedrock_seed_2fa_legacy_pre27_24words(self):
         # pre-version-2.7 2fa seed, containing 24 words
         seed_words = 'sibling leg cable timber patient foot occur plate travel finger chef scale radio citizen promote immune must chef fluid sea sphere common acid lab'
         assert len(seed_words.split()) == 24
@@ -264,7 +264,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual(w.get_receiving_addresses()[0], '39XK9VBGiK4bqNJYrajfKE8C1ky4gYA5Zy')
         self.assertEqual(w.get_change_addresses()[0], '3PKtHrjiKdsZ73ULZ4Sf1vDBnrUoAEtLDe')
 
-    async def test_electrum_seed_2fa_legacy_post27(self):
+    async def test_bedrock_seed_2fa_legacy_post27(self):
         # post-version-2.7 2fa seed
         seed_words = 'kiss live scene rude gate step hip quarter bunker oxygen motor glove'
         self.assertEqual(calc_seed_type(seed_words), '2fa')
@@ -298,7 +298,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual(w.get_receiving_addresses()[0], '35L8XmCDoEBKeaWRjvmZvoZvhp8BXMMMPV')
         self.assertEqual(w.get_change_addresses()[0], '3PeZEcumRqHSPNN43hd4yskGEBdzXgY8Cy')
 
-    async def test_electrum_seed_2fa_segwit(self):
+    async def test_bedrock_seed_2fa_segwit(self):
         seed_words = 'universe topic remind silver february ranch shine worth innocent cattle enhance wise'
         self.assertEqual(calc_seed_type(seed_words), '2fa_segwit')
 
@@ -404,7 +404,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual(w.get_receiving_addresses()[0], 'bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu')
         self.assertEqual(w.get_change_addresses()[0], 'bc1q8c6fshw2dlwun7ekn9qwf37cu2rn755upcp6el')
 
-    async def test_electrum_multisig_seed_standard(self):
+    async def test_bedrock_multisig_seed_standard(self):
         seed_words = 'blast uniform dragon fiscal ensure vast young utility dinosaur abandon rookie sure'
         self.assertEqual(calc_seed_type(seed_words), 'standard')
 
@@ -414,7 +414,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual(ks1.xprv, 'xprv9s21ZrQH143K3t9vo23J3hajRbzvkRLJ6Y1zFrUFAfU3t8oooMPfb7f87cn5KntgqZs5nipZkCiBFo5ZtaSD2eDo7j7CMuFV8Zu6GYLTpY6')
         self.assertEqual(ks1.xpub, 'xpub661MyMwAqRbcGNEPu3aJQqXTydqR9t49Tkwb4Esrj112kw8xLthv8uybxvaki4Ygt9xiwZUQGeFTG7T2TUzR3eA4Zp3aq5RXsABHFBUrq4c')
 
-        # electrum seed: ghost into match ivory badge robot record tackle radar elbow traffic loud
+        # bedrock seed: ghost into match ivory badge robot record tackle radar elbow traffic loud
         ks2 = keystore.from_xpub('xpub661MyMwAqRbcGfCPEkkyo5WmcrhTq8mi3xuBS7VEZ3LYvsgY1cCFDbenT33bdD12axvrmXhuX3xkAbKci3yZY9ZEk8vhLic7KNhLjqdh5ec')
         WalletIntegrityHelper.check_xpub_keystore_sanity(self, ks2)
         self.assertTrue(isinstance(ks2, keystore.BIP32_KeyStore))
@@ -425,7 +425,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual(w.get_receiving_addresses()[0], '32ji3QkAgXNz6oFoRfakyD3ys1XXiERQYN')
         self.assertEqual(w.get_change_addresses()[0], '36XWwEHrrVCLnhjK5MrVVGmUHghr9oWTN1')
 
-    async def test_electrum_multisig_seed_segwit(self):
+    async def test_bedrock_multisig_seed_segwit(self):
         seed_words = 'snow nest raise royal more walk demise rotate smooth spirit canyon gun'
         self.assertEqual(calc_seed_type(seed_words), 'segwit')
 
@@ -435,7 +435,7 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual(ks1.xprv, 'ZprvAjxLRqPiDfPDxXrm8JvcoCGRAW6xUtktucG6AMtdzaEbTEJN8qcECvujfhtDU3jLJ9g3Dr3Gz5m1ypfMs8iSUh62gWyHZ73bYLRWyeHf6y4')
         self.assertEqual(ks1.xpub, 'Zpub6xwgqLvc42wXB1wEELTdALD9iXwStMUkGqBgxkJFYumaL2dWgNvUkjEDWyDFZD3fZuDWDzd1KQJ4NwVHS7hs6H6QkpNYSShfNiUZsgMdtNg')
 
-        # electrum seed: hedgehog sunset update estate number jungle amount piano friend donate upper wool
+        # bedrock seed: hedgehog sunset update estate number jungle amount piano friend donate upper wool
         ks2 = keystore.from_xpub('Zpub6y4oYeETXAbzLNg45wcFDGwEG3vpgsyMJybiAfi2pJtNF3i3fJVxK2BeZJaw7VeKZm192QHvXP3uHDNpNmNDbQft9FiMzkKUhNXQafUMYUY')
         WalletIntegrityHelper.check_xpub_keystore_sanity(self, ks2)
         self.assertTrue(isinstance(ks2, keystore.BIP32_KeyStore))
@@ -761,12 +761,12 @@ class TestWalletKeystoreAddressIntegrityForMainnet(ElectrumTestCase):
         self.assertEqual(w.get_receiving_addresses()[0], '3JDN4wF5BphZqcJFFYuDA7N1apzfPYyJLG')
         self.assertEqual(w.get_change_addresses()[0], '3J8zNvhJndqzBcuPuarzUn1kWs9N4ZY7HS')
 
-class TestWalletKeystoreAddressIntegrityForTestnet(ElectrumTestCase):
+class TestWalletKeystoreAddressIntegrityForTestnet(BedrockTestCase):
     TESTNET = True
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
     async def test_bip39_multisig_seed_p2sh_segwit_testnet(self):
         # bip39 seed: finish seminar arrange erosion sunny coil insane together pretty lunch lunch rose
@@ -847,12 +847,12 @@ class TestWalletKeystoreAddressIntegrityForTestnet(ElectrumTestCase):
         self.assertEqual(w.get_change_addresses()[0], 'tb1q0fj5mra96hhnum80kllklc52zqn6kppt3hyzr49yhr3ecr42z3ts5777jl')
 
 
-class TestWalletSending(ElectrumTestCase):
+class TestWalletSending(BedrockTestCase):
     TESTNET = True
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
     def create_standard_wallet_from_seed(self, seed_words, *, config=None, gap_limit=2):
         if config is None:
@@ -1190,7 +1190,7 @@ class TestWalletSending(ElectrumTestCase):
         class TmpConfig(tempfile.TemporaryDirectory):  # to avoid sub-tests side-effecting each other
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
-                self.config = SimpleConfig({'electrum_path': self.name})
+                self.config = SimpleConfig({'bedrock_path': self.name})
                 self.config.WALLET_COIN_CHOOSER_OUTPUT_ROUNDING = False
             def __enter__(self):
                 return self.config
@@ -2588,7 +2588,7 @@ class TestWalletSending(ElectrumTestCase):
 
         with self.subTest(msg="watch-only wallet self-sweep"):
             # a watch only wallet with imported address must still be able to self-sweep the address (though kind of pointless)
-            # (see https://github.com/spesmilo/electrum/issues/10891)
+            # (see https://github.com/spesmilo/bedrock/issues/10891)
             swept_addr = 'tb1q6vu7lmtu6hfg6vvetjh3pwyh82dp83jkm6rf05'
             wallet = WalletIntegrityHelper.create_imported_wallet(config=self.config, privkeys=False)
             wallet.import_addresses([swept_addr])
@@ -2604,7 +2604,7 @@ class TestWalletSending(ElectrumTestCase):
             tx.sign(keypairs)
             self.assertTrue(tx.is_complete())
 
-    async def test_coinjoin_between_two_p2wpkh_electrum_seeds(self):
+    async def test_coinjoin_between_two_p2wpkh_bedrock_seeds(self):
         wallet1 = WalletIntegrityHelper.create_standard_wallet(
             keystore.from_seed('humor argue expand gain goat shiver remove morning security casual leopard degree', passphrase=''),
             gap_limit=2,
@@ -2740,7 +2740,7 @@ class TestWalletSending(ElectrumTestCase):
 
     async def test_dscancel(self):
         self.maxDiff = None
-        config = SimpleConfig({'electrum_path': self.electrum_path})
+        config = SimpleConfig({'bedrock_path': self.bedrock_path})
         config.WALLET_COIN_CHOOSER_OUTPUT_ROUNDING = False
 
         for simulate_moving_txs in (False, True):
@@ -3663,14 +3663,14 @@ class TestWalletSending(ElectrumTestCase):
             wallet2.sign_transaction(tx2, password=None, ignore_warnings=True)
 
 
-class TestWalletOfflineSigning(ElectrumTestCase):
+class TestWalletOfflineSigning(BedrockTestCase):
     TESTNET = True
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
-    async def test_sending_offline_old_electrum_seed_online_mpk(self):
+    async def test_sending_offline_old_bedrock_seed_online_mpk(self):
         wallet_offline = WalletIntegrityHelper.create_standard_wallet(
             keystore.from_seed('alone body father children lead goodbye phone twist exist grass kick join', passphrase='', for_multisig=False),
             gap_limit=4,
@@ -4415,12 +4415,12 @@ class TestWalletOfflineSigning(ElectrumTestCase):
         self.assertEqual('4376fa5f1f6cb37b1f3956175d3bd4ef6882169294802b250a3c672f3ff431c1', tx.wtxid())
 
 
-class TestWalletCreationChecks(ElectrumTestCase):
+class TestWalletCreationChecks(BedrockTestCase):
     TESTNET = True
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
     async def test_duplicate_masterkeys_in_multisig(self):
         # ks1 (seed) and ks2 have same xpub
@@ -4505,7 +4505,7 @@ class TestWalletCreationChecks(ElectrumTestCase):
         self.assertIn('unexpected keystore type', ctx4.exception.args[0])
 
 
-class TestWalletHistory_SimpleRandomOrder(ElectrumTestCase):
+class TestWalletHistory_SimpleRandomOrder(BedrockTestCase):
     TESTNET = True
     transactions = {
         "0f4972c84974b908a58dda2614b68cf037e6c03e8291898c719766f213217b67": "01000000029d1bdbe67f0bd0d7bd700463f5c29302057c7b52d47de9e2ca5069761e139da2000000008b483045022100a146a2078a318c1266e42265a369a8eef8993750cb3faa8dd80754d8d541d5d202207a6ab8864986919fd1a7fd5854f1e18a8a0431df924d7a878ec3dc283e3d75340141045f7ba332df2a7b4f5d13f246e307c9174cfa9b8b05f3b83410a3c23ef8958d610be285963d67c7bc1feb082f168fa9877c25999963ff8b56b242a852b23e25edfeffffff9d1bdbe67f0bd0d7bd700463f5c29302057c7b52d47de9e2ca5069761e139da2010000008a47304402201c7fa37b74a915668b0244c01f14a9756bbbec1031fb69390bcba236148ab37e02206151581f9aa0e6758b503064c1e661a726d75c6be3364a5a121a8c12cf618f64014104dc28da82e141416aaf771eb78128d00a55fdcbd13622afcbb7a3b911e58baa6a99841bfb7b99bcb7e1d47904fda5d13fdf9675cdbbe73e44efcc08165f49bac6feffffff02b0183101000000001976a914ca14915184a2662b5d1505ce7142c8ca066c70e288ac005a6202000000001976a9145eb4eeaefcf9a709f8671444933243fbd05366a388ac54c51200",
@@ -4532,7 +4532,7 @@ class TestWalletHistory_SimpleRandomOrder(ElectrumTestCase):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
     def create_old_wallet(self):
         ks = keystore.from_old_mpk('e9d4b7866dd1e91c862aebf62a49548c7dbf7bcc6e4b7b8c9da820c7737968df9c09d5a3e271dc814a29981f81b3faaf2737b551ef5dcc6189cf0f8252c442b3')
@@ -4564,7 +4564,7 @@ class TestWalletHistory_SimpleRandomOrder(ElectrumTestCase):
         self.assertEqual(27633300, sum(w.get_balance()))
 
 
-class TestWalletHistory_EvilGapLimit(ElectrumTestCase):
+class TestWalletHistory_EvilGapLimit(BedrockTestCase):
     TESTNET = True
     transactions = {
         # txn A:
@@ -4578,7 +4578,7 @@ class TestWalletHistory_EvilGapLimit(ElectrumTestCase):
     def setUp(self):
         super().setUp()
         self.config = SimpleConfig({
-            'electrum_path': self.electrum_path,
+            'bedrock_path': self.bedrock_path,
         })
         self.config.NETWORK_SKIPMERKLECHECK = True  # needed for Synchronizer to generate new addresses without SPV
 
@@ -4621,7 +4621,7 @@ class TestWalletHistory_EvilGapLimit(ElectrumTestCase):
         self.assertEqual(9999788, sum(w.get_balance()))
 
 
-class TestWalletHistory_DoubleSpend(ElectrumTestCase):
+class TestWalletHistory_DoubleSpend(BedrockTestCase):
     TESTNET = True
     transactions = {
         # txn A:
@@ -4634,7 +4634,7 @@ class TestWalletHistory_DoubleSpend(ElectrumTestCase):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
     async def test_restoring_wallet_without_manual_delete(self):
         w = restore_wallet_from_text__for_unittest(
@@ -4672,12 +4672,12 @@ class TestWalletHistory_DoubleSpend(ElectrumTestCase):
         self.assertEqual(999890, sum(w.get_balance()))
 
 
-class TestWalletHistory_HelperFns(ElectrumTestCase):
+class TestWalletHistory_HelperFns(BedrockTestCase):
     TESTNET = True
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
     async def test_get_tx_status_feerate_for_local_2of3_multisig_partial_tx(self):
         wallet1 = WalletIntegrityHelper.create_multisig_wallet(
@@ -4734,7 +4734,7 @@ class TestWalletHistory_HelperFns(ElectrumTestCase):
                          wallet1.get_tx_status(tx.txid(), TxMinedInfo(_height=TX_HEIGHT_LOCAL, conf=0)))
 
 
-class TestImportedWallet(ElectrumTestCase):
+class TestImportedWallet(BedrockTestCase):
     TESTNET = True
     transactions = {
         # txn A funds addr1:
@@ -4747,7 +4747,7 @@ class TestImportedWallet(ElectrumTestCase):
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
 
     async def test_importing_and_deleting_addresses(self):
         w = restore_wallet_from_text__for_unittest(

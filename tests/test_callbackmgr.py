@@ -1,12 +1,12 @@
 import asyncio
 import weakref
 
-from electrum import util
-from electrum.util import EventListener, event_listener, trigger_callback
-from electrum.utils.memory_leak import count_objects_in_memory, wait_until_obj_is_garbage_collected
-from electrum.simple_config import SimpleConfig
+from bedrock import util
+from bedrock.util import EventListener, event_listener, trigger_callback
+from bedrock.utils.memory_leak import count_objects_in_memory, wait_until_obj_is_garbage_collected
+from bedrock.simple_config import SimpleConfig
 
-from . import ElectrumTestCase, restore_wallet_from_text__for_unittest
+from . import BedrockTestCase, restore_wallet_from_text__for_unittest
 
 
 class MyEventListener(EventListener):
@@ -40,7 +40,7 @@ async def fast_sleep():
         await asyncio.sleep(0)
 
 
-class TestCallbackMgr(ElectrumTestCase):
+class TestCallbackMgr(BedrockTestCase):
 
     def test_multiple_calls_to_register_callbacks(self):
         self.assertEqual(0, _count_all_callbacks())
@@ -126,7 +126,7 @@ class TestCallbackMgr(ElectrumTestCase):
         We need the custom __eq__ for some reason.
         """
         self.assertEqual(_count_all_callbacks(), 0)
-        config = SimpleConfig({'electrum_path': self.electrum_path})
+        config = SimpleConfig({'bedrock_path': self.bedrock_path})
         wallet = restore_wallet_from_text__for_unittest(
             "9dk", path=None, config=config,
         )["wallet"]

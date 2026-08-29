@@ -3,8 +3,8 @@ import shutil
 import tempfile
 from typing import TYPE_CHECKING
 
-from electrum import SimpleConfig
-from electrum.gui.qml.qeconfig import QEConfig
+from bedrock import SimpleConfig
+from bedrock.gui.qml.qeconfig import QEConfig
 
 from .qt_util import QETestCase, qt_test
 
@@ -16,9 +16,9 @@ class TestConfig(QETestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls._unittest_base_path = tempfile.mkdtemp(prefix="electrum-unittest-base-")
-        electrum_path = os.path.join(cls._unittest_base_path, "electrum")
-        config = SimpleConfig({'electrum_path': electrum_path})
+        cls._unittest_base_path = tempfile.mkdtemp(prefix="bedrock-unittest-base-")
+        bedrock_path = os.path.join(cls._unittest_base_path, "bedrock")
+        config = SimpleConfig({'bedrock_path': bedrock_path})
         QEConfig(config)
 
     @classmethod

@@ -1,21 +1,21 @@
 import asyncio
 from aiorpcx import RPCError
 
-from electrum import util
-from electrum.bitcoin import COIN
-from electrum.interface import ServerAddr, PaddedRSTransport
-from electrum.util import bfh
-from electrum.simple_config import SimpleConfig
-from electrum.transaction import Transaction, TxOutput
-from electrum.wallet import Abstract_Wallet
+from bedrock import util
+from bedrock.bitcoin import COIN
+from bedrock.interface import ServerAddr, PaddedRSTransport
+from bedrock.util import bfh
+from bedrock.simple_config import SimpleConfig
+from bedrock.transaction import Transaction, TxOutput
+from bedrock.wallet import Abstract_Wallet
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from . import restore_wallet_from_text__for_unittest
 from .toyserver.toynetwork import ToyNetwork
 from .toyserver.toyserver import ToyServer, ToyServerSession
 
 
-class TestServerAddr(ElectrumTestCase):
+class TestServerAddr(BedrockTestCase):
 
     def test_from_str(self):
         self.assertEqual(ServerAddr(host="104.198.149.61", port=80, protocol="t"),
@@ -60,12 +60,12 @@ class TestServerAddr(ElectrumTestCase):
                          ServerAddr(host="2400:6180:0:d1::86b:e001", port=50001, protocol="t").to_friendly_name())
 
 
-class TestInterface(ElectrumTestCase):
+class TestInterface(BedrockTestCase):
     REGTEST = True
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
         self.config.NETWORK_SKIPMERKLECHECK = True
         self._orig_WAIT_FOR_BUFFER_GROWTH_SECONDS = PaddedRSTransport.WAIT_FOR_BUFFER_GROWTH_SECONDS
         PaddedRSTransport.WAIT_FOR_BUFFER_GROWTH_SECONDS = 0
@@ -163,7 +163,7 @@ class TestInterface(ElectrumTestCase):
     async def test_we_disconnect_on_incoming_request(self):
         """We don't expect the server to send us any requests of its own."""
         interface = await self._start_iface_and_wait_for_sync()
-        with self.assertLogs('electrum', level='INFO') as logs:
+        with self.assertLogs('bedrock', level='INFO') as logs:
             with self.assertRaises(asyncio.CancelledError):
                 await self._get_server_session().send_request('blockchain.block.header', [999])
         self.assertTrue(any(("Interface.[127.0.0.1:" in msg and "unexpected request. not a notification" in msg)
@@ -177,7 +177,7 @@ class TestInterface(ElectrumTestCase):
         interface.session.cost_hard_limit /= 30
         interface.session.cost_soft_limit = interface.session.cost_hard_limit - 1
         interface.session.bw_cost_per_byte *= 10
-        with self.assertLogs('electrum', level='INFO') as logs:
+        with self.assertLogs('bedrock', level='INFO') as logs:
             # server now sends a crazy number of notifications to the client
             srv_sess = self._get_server_session()
             headersub_res = (srv_sess._get_headersub_result(),)

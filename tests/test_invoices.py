@@ -1,28 +1,28 @@
 import os
 import time
 
-from electrum import util
-from electrum.simple_config import SimpleConfig
-from electrum.wallet import Standard_Wallet, Abstract_Wallet
-from electrum.invoices import PR_UNPAID, PR_PAID, PR_UNCONFIRMED, PR_BROADCASTING, BaseInvoice, Invoice, LN_EXPIRY_NEVER
-from electrum.address_synchronizer import TX_HEIGHT_UNCONFIRMED
-from electrum.transaction import Transaction, PartialTxOutput
-from electrum.util import TxMinedInfo, InvoiceError
-from electrum.fee_policy import FixedFeePolicy
+from bedrock import util
+from bedrock.simple_config import SimpleConfig
+from bedrock.wallet import Standard_Wallet, Abstract_Wallet
+from bedrock.invoices import PR_UNPAID, PR_PAID, PR_UNCONFIRMED, PR_BROADCASTING, BaseInvoice, Invoice, LN_EXPIRY_NEVER
+from bedrock.address_synchronizer import TX_HEIGHT_UNCONFIRMED
+from bedrock.transaction import Transaction, PartialTxOutput
+from bedrock.util import TxMinedInfo, InvoiceError
+from bedrock.fee_policy import FixedFeePolicy
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from . import restore_wallet_from_text__for_unittest
 
 
-class TestWalletPaymentRequests(ElectrumTestCase):
+class TestWalletPaymentRequests(BedrockTestCase):
     """test 'incoming' invoices"""
     TESTNET = True
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
-        self.wallet1_path = os.path.join(self.electrum_path, "somewallet1")
-        self.wallet2_path = os.path.join(self.electrum_path, "somewallet2")
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
+        self.wallet1_path = os.path.join(self.bedrock_path, "somewallet1")
+        self.wallet2_path = os.path.join(self.bedrock_path, "somewallet2")
         self._orig_get_cur_time = BaseInvoice._get_cur_time
 
     def tearDown(self):
@@ -222,7 +222,7 @@ class TestWalletPaymentRequests(ElectrumTestCase):
         self.assertEqual(pr2, wallet1.get_request_by_addr(addr1))
 
 
-class TestBaseInvoice(ElectrumTestCase):
+class TestBaseInvoice(BedrockTestCase):
     TESTNET = True
 
     async def test_arg_validation(self):
@@ -257,14 +257,14 @@ class TestBaseInvoice(ElectrumTestCase):
             invoice.exp = "asd"
 
 
-class TestOutgoingInvoicesPaidCache(ElectrumTestCase):
+class TestOutgoingInvoicesPaidCache(BedrockTestCase):
     """test caching of paid-status for outgoing invoices"""
     TESTNET = True
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
-        self.wallet_path = os.path.join(self.electrum_path, "outgoing_inv_wallet")
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
+        self.wallet_path = os.path.join(self.bedrock_path, "outgoing_inv_wallet")
 
     def _make_wallet(self):
         # Seed matches the funding tx output below (see TestWalletPaymentRequests.create_wallet2).

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GitHub Actions job: Claude Code security review for Electrum pull requests.
+GitHub Actions job: Claude Code security review for Bedrock pull requests.
 
 Runs Claude Code against the PR diff to detect critical security
 vulnerabilities. Optionally posts findings as a GitHub PR comment.
@@ -19,7 +19,7 @@ Environment variables:
         PR_NUMBER                -- PR number (empty if not a PR build)
         BASE_BRANCH              -- target branch of the PR
     Set by GitHub Actions runtime:
-        GITHUB_REPOSITORY        -- e.g. "spesmilo/electrum"
+        GITHUB_REPOSITORY        -- e.g. "spesmilo/bedrock"
         GITHUB_RUN_ID            -- current workflow run ID
         GITHUB_SERVER_URL        -- e.g. "https://github.com"
 """

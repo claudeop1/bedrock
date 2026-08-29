@@ -24,7 +24,7 @@ mkdir -p $WINEPREFIX/drive_c/tmp
 info "Installing Python."
 # note: you might need "sudo apt-get install dirmngr" for the following
 # keys from https://www.python.org/downloads/#pubkeys
-KEYRING_PYTHON_DEV="keyring-electrum-build-python-dev.gpg"
+KEYRING_PYTHON_DEV="keyring-bedrock-build-python-dev.gpg"
 gpg --no-default-keyring --keyring $KEYRING_PYTHON_DEV --import "$here"/gpg_keys/7ED10B6531D7C8E1BC296021FC624643487034E5.asc
 if [ "$WIN_ARCH" = "win32" ] ; then
     PYARCH="win32"
@@ -53,7 +53,7 @@ $WINE_PYTHON -m pip install --no-build-isolation --no-dependencies --no-binary :
 
 
 # copy already built DLLs
-cp "$DLL_TARGET_DIR"/*.dll "$WINEPREFIX/drive_c/electrum/electrum/" || fail "Could not copy DLLs to destination"
+cp "$DLL_TARGET_DIR"/*.dll "$WINEPREFIX/drive_c/bedrock/bedrock/" || fail "Could not copy DLLs to destination"
 
 
 info "Building PyInstaller."
@@ -71,8 +71,8 @@ info "Building PyInstaller."
         info "pyinstaller already built, skipping"
         exit 0
     fi
-    cd "$WINEPREFIX/drive_c/electrum"
-    ELECTRUM_COMMIT_HASH=$(git rev-parse HEAD)
+    cd "$WINEPREFIX/drive_c/bedrock"
+    BEDROCK_COMMIT_HASH=$(git rev-parse HEAD)
     cd "$CACHEDIR"
     rm -rf pyinstaller
     mkdir pyinstaller
@@ -85,7 +85,7 @@ info "Building PyInstaller."
     rm -fv PyInstaller/bootloader/Windows-*/run*.exe || true
     # add reproducible randomness. this ensures we build a different bootloader for each commit.
     # if we built the same one for all releases, that might also get anti-virus false positives
-    echo "const char *electrum_tag = \"tagged by Electrum@$ELECTRUM_COMMIT_HASH\";" >> ./bootloader/src/pyi_main.c
+    echo "const char *bedrock_tag = \"tagged by Bedrock@$BEDROCK_COMMIT_HASH\";" >> ./bootloader/src/pyi_main.c
     pushd bootloader
     # cross-compile to Windows using host python
     python3 ./waf all CC="${GCC_TRIPLET_HOST}-gcc" \

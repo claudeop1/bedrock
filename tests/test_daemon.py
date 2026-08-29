@@ -4,25 +4,25 @@ import os
 from typing import Optional, Iterable
 from unittest import mock
 
-from electrum.commands import Commands
-from electrum.daemon import Daemon
-from electrum.simple_config import SimpleConfig
-from electrum.wallet import Abstract_Wallet
-from electrum.lnworker import LNWallet, LNPeerManager
-from electrum.lnwatcher import LNWatcher
-from electrum import util
-from electrum.utils.memory_leak import count_objects_in_memory
-from electrum import constants
+from bedrock.commands import Commands
+from bedrock.daemon import Daemon
+from bedrock.simple_config import SimpleConfig
+from bedrock.wallet import Abstract_Wallet
+from bedrock.lnworker import LNWallet, LNPeerManager
+from bedrock.lnwatcher import LNWatcher
+from bedrock import util
+from bedrock.utils.memory_leak import count_objects_in_memory
+from bedrock import constants
 
-from . import ElectrumTestCase, as_testnet, restore_wallet_from_text__for_unittest
+from . import BedrockTestCase, as_testnet, restore_wallet_from_text__for_unittest
 
 
-class DaemonTestCase(ElectrumTestCase):
+class DaemonTestCase(BedrockTestCase):
     config: 'SimpleConfig'
 
     def setUp(self):
         super().setUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
         self.config.NETWORK_OFFLINE = True
 
         self.wallet_dir = os.path.dirname(self.config.get_wallet_path())
@@ -358,7 +358,7 @@ class TestLoadWallet(DaemonTestCase):
         assert constants.net.TESTNET is False
 
         # case 1: fresh wallet created on wrong network
-        with mock.patch("electrum.constants.net", constants.BitcoinTestnet):
+        with mock.patch("bedrock.constants.net", constants.BitcoinTestnet):
             path = self._restore_wallet_from_text("9dk", password=None)
         with self.assertRaises(util.WalletFileException):
             wallet = self.daemon.load_wallet(path, password=None, upgrade=True)

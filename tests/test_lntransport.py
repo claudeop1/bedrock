@@ -1,18 +1,18 @@
 import asyncio
 from typing import List
 
-import electrum_ecc as ecc
+import bedrock_ecc as ecc
 
-from electrum import util
-from electrum import lntransport
-from electrum.lntransport import LNPeerAddr, LNResponderTransport, LNTransport, extract_nodeid, split_host_port, ConnStringFormatError
-from electrum.util import OldTaskGroup
+from bedrock import util
+from bedrock import lntransport
+from bedrock.lntransport import LNPeerAddr, LNResponderTransport, LNTransport, extract_nodeid, split_host_port, ConnStringFormatError
+from bedrock.util import OldTaskGroup
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from .test_bitcoin import needs_test_with_all_chacha20_implementations
 
 
-class TestLNTransport(ElectrumTestCase):
+class TestLNTransport(BedrockTestCase):
 
     @needs_test_with_all_chacha20_implementations
     async def test_responder(self):
@@ -118,13 +118,13 @@ class TestLNTransport(ElectrumTestCase):
         # accepted by getaddrinfo but not ipaddress.ip_address
         self.assertEqual(split_host_port("127.0.0:8000"), ("127.0.0", "8000"))
         self.assertEqual(split_host_port("127.0.0"), ("127.0.0", "9735"))
-        self.assertEqual(split_host_port("electrum.org:8000"), ("electrum.org", "8000"))
-        self.assertEqual(split_host_port("electrum.org"), ("electrum.org", "9735"))
+        self.assertEqual(split_host_port("bedrock.org:8000"), ("bedrock.org", "8000"))
+        self.assertEqual(split_host_port("bedrock.org"), ("bedrock.org", "9735"))
 
         with self.assertRaises(ConnStringFormatError):
-            split_host_port("electrum.org:8000:")
+            split_host_port("bedrock.org:8000:")
         with self.assertRaises(ConnStringFormatError):
-            split_host_port("electrum.org:")
+            split_host_port("bedrock.org:")
 
     def test_extract_nodeid(self):
         pubkey1 = ecc.GENERATOR.get_public_key_bytes(compressed=True)
@@ -143,7 +143,7 @@ class TestLNTransport(ElectrumTestCase):
         self.assertEqual(extract_nodeid(f"{pubkey1.hex()}"), (pubkey1, None))
 
 
-class TestLNPeerAddr(ElectrumTestCase):
+class TestLNPeerAddr(BedrockTestCase):
 
     def test_validate_net_address(self):
         # Test invalid host

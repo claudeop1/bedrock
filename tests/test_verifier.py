@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from electrum.bitcoin import hash_encode
-from electrum.transaction import Transaction
-from electrum.util import bfh
-from electrum.verifier import SPV, InnerNodeOfSpvProofIsValidTx, LeftSiblingDuplicate
+from bedrock.bitcoin import hash_encode
+from bedrock.transaction import Transaction
+from bedrock.util import bfh
+from bedrock.verifier import SPV, InnerNodeOfSpvProofIsValidTx, LeftSiblingDuplicate
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 
 
-class TestVerifier_CVE_2017_12842(ElectrumTestCase):
+class TestVerifier_CVE_2017_12842(BedrockTestCase):
     # these tests are regarding CVE-2017-12842, the attack described in
     # https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2018-June/016105.html
     TESTNET = True
@@ -49,7 +49,7 @@ class TestVerifier_CVE_2017_12842(ElectrumTestCase):
             SPV.hash_merkle_root(fake_mbranch, f_tx_hash, 6)
 
 
-class TestVerifier_CVE_2012_2459(ElectrumTestCase):
+class TestVerifier_CVE_2012_2459(BedrockTestCase):
     # These tests are regarding CVE-2012-2459.
     # Bitcoin's Merkle tree duplicates odd nodes to balance the tree. An attacker can
     # exploit this by constructing a tree where a duplicated subtree is treated

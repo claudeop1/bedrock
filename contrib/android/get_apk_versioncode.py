@@ -13,20 +13,20 @@ ARCH_DICT = {
 }
 
 
-def get_electrum_version() -> str:
+def get_bedrock_version() -> str:
     project_root = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-    version_file_path = os.path.join(project_root, "electrum", "version.py")
+    version_file_path = os.path.join(project_root, "bedrock", "version.py")
     # load version.py; needlessly complicated alternative to "imp.load_source":
     version_spec = importlib.util.spec_from_file_location('version', version_file_path)
     version_module = version = importlib.util.module_from_spec(version_spec)
     version_spec.loader.exec_module(version_module)
-    return version.ELECTRUM_VERSION
+    return version.BEDROCK_VERSION
 
 
 def get_android_versioncode(*, arch_name: str) -> int:
     version_code = 0
-    # add ELECTRUM_VERSION
-    app_version = get_electrum_version()
+    # add BEDROCK_VERSION
+    app_version = get_bedrock_version()
     # if alpha/beta, and not stable: strip out alpha/beta part from last component.
     # NOTE: we REUSE the version_code int between alphas/betas and the final stable.
     #       This is not allowed on Google Play or F-Droid.

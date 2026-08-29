@@ -17,7 +17,7 @@
 LIBSECP_VERSION="1a53f4961f337b4d166c25fce72ef0dc88806618"
 # ^ tag "v0.7.1"
 # note: this version is duplicated in contrib/android/p4a_recipes/libsecp256k1/__init__.py
-#       (and also in electrum-ecc, for the "secp256k1" git submodule)
+#       (and also in bedrock-ecc, for the "secp256k1" git submodule)
 
 set -e
 
@@ -70,7 +70,7 @@ info "Building $pkgname..."
     if [ -n "$DLL_TARGET_DIR" ] ; then
         cp -fpv "$here/$pkgname/dist/lib/$dlname" "$DLL_TARGET_DIR/" || fail "Could not copy the $pkgname binary to DLL_TARGET_DIR"
     else
-        cp -fpv "$here/$pkgname/dist/lib/$dlname" "$PROJECT_ROOT/electrum" || fail "Could not copy the $pkgname binary to its destination"
-        info "$dlname has been placed in the 'electrum' folder."
+        cp -fpv "$here/$pkgname/dist/lib/$dlname" "$PROJECT_ROOT/bedrock" || fail "Could not copy the $pkgname binary to its destination"
+        info "$dlname has been placed in the 'bedrock' folder."
     fi
 )

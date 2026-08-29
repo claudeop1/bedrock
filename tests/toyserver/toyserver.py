@@ -1,4 +1,4 @@
-# Copyright (C) 2026 The Electrum developers
+# Copyright (C) 2026 The Bedrock developers
 # Distributed under the MIT software license, see the accompanying
 # file LICENCE or http://www.opensource.org/licenses/mit-license.php
 
@@ -11,17 +11,17 @@ from typing import Optional, Sequence, Iterable, List, Set, Callable, TypeVar
 import aiorpcx
 from aiorpcx import RPCError
 
-from electrum import blockchain
-from electrum.util import bfh, OrderedSet
-from electrum.logging import Logger
-from electrum.transaction import Transaction, TxOutput, TxInput, TxOutpoint, PartialTxOutput
-from electrum import constants
-from electrum.bitcoin import script_to_scripthash, COIN, COINBASE_MATURITY
-from electrum.simple_config import SimpleConfig
-from electrum.synchronizer import history_status
-from electrum.wallet import Abstract_Wallet
-from electrum.address_synchronizer import TX_HEIGHT_UNCONFIRMED
-from electrum.fee_policy import FixedFeePolicy
+from bedrock import blockchain
+from bedrock.util import bfh, OrderedSet
+from bedrock.logging import Logger
+from bedrock.transaction import Transaction, TxOutput, TxInput, TxOutpoint, PartialTxOutput
+from bedrock import constants
+from bedrock.bitcoin import script_to_scripthash, COIN, COINBASE_MATURITY
+from bedrock.simple_config import SimpleConfig
+from bedrock.synchronizer import history_status
+from bedrock.wallet import Abstract_Wallet
+from bedrock.address_synchronizer import TX_HEIGHT_UNCONFIRMED
+from bedrock.fee_policy import FixedFeePolicy
 
 from .. import restore_wallet_from_text__for_unittest
 
@@ -75,7 +75,7 @@ class TxConflictsBlockchain(TxConflicts): pass
 
 
 class ToyServer(Logger):
-    """Electrum Server backend"""
+    """Bedrock Server backend"""
 
     asyncio_server: asyncio.base_events.Server
     server_port: int
@@ -445,7 +445,7 @@ class ToyServer(Logger):
 
 
 class ToyServerSession(aiorpcx.RPCSession, Logger):
-    """Server-side representation of a single electrum-protocol session."""
+    """Server-side representation of a single bedrock-protocol session."""
 
     def __init__(self, *args, toyserver: ToyServer, **kwargs):
         aiorpcx.RPCSession.__init__(self, *args, **kwargs)
@@ -498,7 +498,7 @@ class ToyServerSession(aiorpcx.RPCSession, Logger):
             'protocol_max': '1.6',
             'protocol_min': '1.6',
             'pruning': None,
-            'server_version': 'ElectrumX 1.19.0',
+            'server_version': 'BedrockX 1.19.0',
             'hash_function': 'sha256',
         }
 

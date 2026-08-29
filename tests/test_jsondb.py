@@ -8,12 +8,12 @@ import jsonpatch
 from jsonpatch import JsonPatchException
 from jsonpointer import JsonPointerException
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 
-from electrum.json_db import JsonDB
-from electrum.util import WalletFileException
+from bedrock.json_db import JsonDB
+from bedrock.util import WalletFileException
 
-class TestJsonpatch(ElectrumTestCase):
+class TestJsonpatch(BedrockTestCase):
 
     async def test_op_replace(self):
         data1 = {'foo': 'bar', 'numbers': [1, 3, 4, 8], 'dictlevelA1': {'secret1': 2, 'secret2': 4, 'secret3': 6}}
@@ -100,7 +100,7 @@ def pop2_from_dict(d: dict, key: str) -> Any:
     return val
 
 
-class TestJsonDB(ElectrumTestCase):
+class TestJsonDB(BedrockTestCase):
 
     async def test_jsonpatch_replace_after_remove(self):
         data = { 'a':{} }

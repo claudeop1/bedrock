@@ -3,22 +3,22 @@ import os
 from typing import Optional, Sequence
 from unittest import mock
 
-from electrum_ecc import ECPrivkey
+from bedrock_ecc import ECPrivkey
 
-from electrum import bitcoin
-from electrum.address_synchronizer import TX_HEIGHT_LOCAL
-from electrum.bitcoin import COIN, DUST_LIMIT_P2WSH
-from electrum.util import bfh, now
-from electrum.crypto import sha256
-from electrum.lnonion import OnionRoutingFailure
-from electrum.simple_config import SimpleConfig
-from electrum.submarine_swaps import (
+from bedrock import bitcoin
+from bedrock.address_synchronizer import TX_HEIGHT_LOCAL
+from bedrock.bitcoin import COIN, DUST_LIMIT_P2WSH
+from bedrock.util import bfh, now
+from bedrock.crypto import sha256
+from bedrock.lnonion import OnionRoutingFailure
+from bedrock.simple_config import SimpleConfig
+from bedrock.submarine_swaps import (
     SwapManager, SwapData, SwapServerTransport, LOCKTIME_DELTA_REFUND,
     MIN_LOCKTIME_DELTA_FOR_CLAIM, SPENDER_FINALITY_DELAY, _construct_swap_scriptcode)
-from electrum.transaction import (
+from bedrock.transaction import (
     PartialTransaction, PartialTxOutput, Transaction, TxOutput, TxOutpoint)
-from electrum.txbatcher import TxBatcher
-from electrum.wallet import Standard_Wallet, Wallet
+from bedrock.txbatcher import TxBatcher
+from bedrock.wallet import Standard_Wallet, Wallet
 
 from .toyserver.testcase import ToyServerTestCase
 
@@ -444,7 +444,7 @@ class TestSwapClaim(ToyServerTestCase):
         transport = MockSwapServerTransport(config=self.alice.config, sm=self.sm)
         # the hold invoice is created with a 300s expiry, so this is one second past it
         expired_clock = now() + 301
-        with mock.patch('electrum.submarine_swaps.now', lambda: expired_clock):
+        with mock.patch('bedrock.submarine_swaps.now', lambda: expired_clock):
             funding_txid = await self.sm.wait_for_htlcs_and_broadcast(
                 transport=transport, swap=swap, invoice=self.invoice, tx=tx)
         # we sent the request to the server

@@ -8,13 +8,13 @@ import functools
 import inspect
 from typing import TYPE_CHECKING, List
 
-import electrum
-import electrum.logging
-from electrum import constants
-from electrum import util
-from electrum.util import OldTaskGroup
-from electrum.logging import Logger
-from electrum.wallet import restore_wallet_from_text
+import bedrock
+import bedrock.logging
+from bedrock import constants
+from bedrock import util
+from bedrock.util import OldTaskGroup
+from bedrock.logging import Logger
+from bedrock.wallet import restore_wallet_from_text
 
 if TYPE_CHECKING:
     from .test_lnpeer import MockLNWallet
@@ -27,12 +27,12 @@ if TYPE_CHECKING:
 FAST_TESTS = False
 
 
-electrum.logging._configure_stderr_logging(verbosity="*")
+bedrock.logging._configure_stderr_logging(verbosity="*")
 
-electrum.util.AS_LIB_USER_I_WANT_TO_MANAGE_MY_OWN_ASYNCIO_LOOP = True
+bedrock.util.AS_LIB_USER_I_WANT_TO_MANAGE_MY_OWN_ASYNCIO_LOOP = True
 
 
-class ElectrumTestCase(unittest.IsolatedAsyncioTestCase, Logger):
+class BedrockTestCase(unittest.IsolatedAsyncioTestCase, Logger):
     """Base class for our unit tests."""
 
     TESTNET = False  # there is also an @as_testnet decorator to run single tests in testnet mode
@@ -70,9 +70,9 @@ class ElectrumTestCase(unittest.IsolatedAsyncioTestCase, Logger):
             # or if a prior test raised  during `setUp` or `asyncSetUp` and never released the lock.
             raise Exception("timed out waiting for test_lock")
         super().setUp()
-        self.unittest_base_path = tempfile.mkdtemp(prefix="electrum-unittest-base-")
-        self.electrum_path = os.path.join(self.unittest_base_path, "electrum")
-        util.make_dir(self.electrum_path)
+        self.unittest_base_path = tempfile.mkdtemp(prefix="bedrock-unittest-base-")
+        self.bedrock_path = os.path.join(self.unittest_base_path, "bedrock")
+        util.make_dir(self.bedrock_path)
         assert util._asyncio_event_loop is None, "global event loop already set?!"
         self._lnworkers_created = []  # type: List[MockLNWallet]
 

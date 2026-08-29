@@ -1,15 +1,15 @@
 from pathlib import Path
 import os
 
-from electrum import constants
-from electrum.simple_config import SimpleConfig
-from electrum.blockchain import Blockchain, deserialize_header, hash_header, InvalidHeader, BlockchainManager
-from electrum.util import bfh
+from bedrock import constants
+from bedrock.simple_config import SimpleConfig
+from bedrock.blockchain import Blockchain, deserialize_header, hash_header, InvalidHeader, BlockchainManager
+from bedrock.util import bfh
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 
 
-class TestBlockchain(ElectrumTestCase):
+class TestBlockchain(BedrockTestCase):
 
     HEADERS = {
         'A': deserialize_header(bfh("0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4adae5494dffff7f2002000000"), 0),
@@ -56,8 +56,8 @@ class TestBlockchain(ElectrumTestCase):
 
     def setUp(self):
         super().setUp()
-        self.data_dir = Path(self.electrum_path)
-        self.config = SimpleConfig({'electrum_path': self.data_dir})
+        self.data_dir = Path(self.bedrock_path)
+        self.config = SimpleConfig({'bedrock_path': self.data_dir})
         self.bc_mgr = BlockchainManager.from_config(self.config)
 
     def _append_header(self, chain: Blockchain, header: dict):
@@ -424,7 +424,7 @@ class TestBlockchain(ElectrumTestCase):
             Blockchain.bits_to_target(0xff123456)
 
 
-class TestVerifyHeader(ElectrumTestCase):
+class TestVerifyHeader(BedrockTestCase):
 
     # Data for Bitcoin block header #100.
     valid_header = "0100000095194b8567fe2e8bbda931afd01a7acd399b9325cb54683e64129bcd00000000660802c98f18fd34fd16d61c63cf447568370124ac5f3be626c2e1c3c9f0052d19a76949ffff001d33f3c25d"

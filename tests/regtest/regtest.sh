@@ -6,9 +6,9 @@ TEST_SRK_CHANNELS=False
 
 # alice -> bob -> carol
 
-alice="./run_electrum --regtest -D /tmp/alice"
-bob="./run_electrum --regtest -D /tmp/bob"
-carol="./run_electrum --regtest -D /tmp/carol"
+alice="./run_bedrock --regtest -D /tmp/alice"
+bob="./run_bedrock --regtest -D /tmp/bob"
+carol="./run_bedrock --regtest -D /tmp/carol"
 
 bitcoin_cli="bitcoin-cli -rpcuser=doggman -rpcpassword=donkey -rpcport=18554 -regtest"
 
@@ -21,7 +21,7 @@ function new_blocks()
 function wait_until_htlcs_settled()
 {
     msg="wait until $1's local_unsettled_sent is zero"
-    cmd="./run_electrum --regtest -D /tmp/$1"
+    cmd="./run_bedrock --regtest -D /tmp/$1"
     declare -i timeout_sec=120
     declare -i elapsed_sec=0
 
@@ -43,7 +43,7 @@ function wait_until_htlcs_settled()
 function wait_for_balance()
 {
     msg="wait until $1's balance reaches $2"
-    cmd="./run_electrum --regtest -D /tmp/$1"
+    cmd="./run_bedrock --regtest -D /tmp/$1"
     declare -i timeout_sec=120
     declare -i elapsed_sec=0
 
@@ -64,7 +64,7 @@ function wait_for_balance()
 function wait_until_channel_open()
 {
     msg="wait until $1 sees channel open"
-    cmd="./run_electrum --regtest -D /tmp/$1"
+    cmd="./run_bedrock --regtest -D /tmp/$1"
     declare -i timeout_sec=120
     declare -i elapsed_sec=0
 
@@ -85,7 +85,7 @@ function wait_until_channel_open()
 function wait_until_channel_closed()
 {
     msg="wait until $1 sees channel closed"
-    cmd="./run_electrum --regtest -D /tmp/$1"
+    cmd="./run_bedrock --regtest -D /tmp/$1"
     declare -i timeout_sec=120
     declare -i elapsed_sec=0
 
@@ -106,7 +106,7 @@ function wait_until_channel_closed()
 function wait_until_preimage()
 {
     msg="wait until $1 has preimage for $2"
-    cmd="./run_electrum --regtest -D /tmp/$1"
+    cmd="./run_bedrock --regtest -D /tmp/$1"
     declare -i timeout_sec=120
     declare -i elapsed_sec=0
 
@@ -149,7 +149,7 @@ function wait_until_spent()
 function wait_for_chain_tip()
 {
     msg="waiting until $1 catches up to chain tip"
-    cmd="./run_electrum --regtest -D /tmp/$1"
+    cmd="./run_bedrock --regtest -D /tmp/$1"
     declare -i timeout_sec=120
     declare -i elapsed_sec=0
 
@@ -189,7 +189,7 @@ fi
 if [[ $1 == "init" ]]; then
     echo "initializing $2"
     rm -rf /tmp/$2/
-    agent="./run_electrum --regtest -D /tmp/$2"
+    agent="./run_bedrock --regtest -D /tmp/$2"
     $agent create --offline > /dev/null
     $agent setconfig --offline test_ln_open_srk_channels $TEST_SRK_CHANNELS
     $agent setconfig --offline log_to_file True
@@ -204,20 +204,20 @@ fi
 
 if [[ $1 == "setconfig" ]]; then
     # use this to set config vars that need to be set before the daemon is started
-    agent="./run_electrum --regtest -D /tmp/$2"
+    agent="./run_bedrock --regtest -D /tmp/$2"
     $agent setconfig --offline $3 $4
 fi
 
 # start daemons. Bob is started first because he is listening
 if [[ $1 == "start" ]]; then
-    agent="./run_electrum --regtest -D /tmp/$2"
+    agent="./run_bedrock --regtest -D /tmp/$2"
     $agent daemon -d
     $agent load_wallet
     $agent wait_for_sync
 fi
 
 if [[ $1 == "stop" ]]; then
-    agent="./run_electrum --regtest -D /tmp/$2"
+    agent="./run_bedrock --regtest -D /tmp/$2"
     $agent stop || true
 fi
 
@@ -847,15 +847,15 @@ fi
 if [[ $1 == "unixsockets" ]]; then
     # This looks different because it has to run the entire daemon
     # Test domain socket behavior
-    ./run_electrum --regtest daemon -d --rpcsock=unix # Start daemon with unix domain socket
-    ./run_electrum --regtest stop # Errors if it can't connect
+    ./run_bedrock --regtest daemon -d --rpcsock=unix # Start daemon with unix domain socket
+    ./run_bedrock --regtest stop # Errors if it can't connect
     # Test custom socket path
     f=$(mktemp --dry-run)
-    ./run_electrum --regtest daemon -d --rpcsock=unix --rpcsockpath=$f
+    ./run_bedrock --regtest daemon -d --rpcsock=unix --rpcsockpath=$f
     [ -S $f ] # filename exists and is socket
-    ./run_electrum --regtest stop
+    ./run_bedrock --regtest stop
     rm $f # clean up
     # Test for regressions in the ordinary TCP functionality.
-    ./run_electrum --regtest daemon -d --rpcsock=tcp
-    ./run_electrum --regtest stop
+    ./run_bedrock --regtest daemon -d --rpcsock=tcp
+    ./run_bedrock --regtest stop
 fi

@@ -5,10 +5,10 @@ import os
 import sys
 import inspect
 
-import electrum_ecc as ecc
+import bedrock_ecc as ecc
 
-from electrum import bitcoin
-from electrum.bitcoin import (public_key_to_p2pkh, address_from_private_key,
+from bedrock import bitcoin
+from bedrock.bitcoin import (public_key_to_p2pkh, address_from_private_key,
                               is_address, is_private_key,
                               var_int, _op_push, address_to_script, OnchainOutputType, address_to_payload,
                               deserialize_privkey, serialize_privkey, is_segwit_address,
@@ -18,20 +18,20 @@ from electrum.bitcoin import (public_key_to_p2pkh, address_from_private_key,
                               opcodes, base_encode, base_decode, BitcoinException,
                               taproot_tweak_pubkey, taproot_tweak_seckey, taproot_output_script,
                               control_block_for_taproot_script_spend)
-from electrum import bip32
-from electrum import segwit_addr
-from electrum.segwit_addr import DecodedBech32
-from electrum.bip32 import (BIP32Node, convert_bip32_intpath_to_strpath,
+from bedrock import bip32
+from bedrock import segwit_addr
+from bedrock.segwit_addr import DecodedBech32
+from bedrock.bip32 import (BIP32Node, convert_bip32_intpath_to_strpath,
                             xpub_from_xprv, xpub_type, is_xprv, is_bip32_derivation,
                             is_xpub, convert_bip32_strpath_to_intpath,
                             normalize_bip32_derivation, is_all_public_derivation)
-from electrum.crypto import sha256d, SUPPORTED_PW_HASH_VERSIONS
-from electrum import crypto, constants
-from electrum.util import bfh, InvalidPassword, randrange
-from electrum.storage import WalletStorage
-from electrum.keystore import xtype_from_derivation
+from bedrock.crypto import sha256d, SUPPORTED_PW_HASH_VERSIONS
+from bedrock import crypto, constants
+from bedrock.util import bfh, InvalidPassword, randrange
+from bedrock.storage import WalletStorage
+from bedrock.keystore import xtype_from_derivation
 
-from . import ElectrumTestCase
+from . import BedrockTestCase
 from . import FAST_TESTS
 
 
@@ -146,7 +146,7 @@ def disable_ecdsa_r_value_grinding(func):
     return run_test
 
 
-class Test_bitcoin(ElectrumTestCase):
+class Test_bitcoin(BedrockTestCase):
 
     def test_libsecp256k1_is_available(self):
         # we want the unit testing framework to test with libsecp256k1 available.
@@ -204,7 +204,7 @@ class Test_bitcoin(ElectrumTestCase):
 
     def test_signmessage_legacy_address(self):
         msg1 = b'Chancellor on brink of second bailout for banks'
-        msg2 = b'Electrum'
+        msg2 = b'Bedrock'
 
         sig1 = self.sign_message_with_wif_privkey(
             'L1TnU2zbNaAqMoVh65Cyvmcjzbrj41Gs9iTLcWbpJCMynXuap6UN', msg1)  # compressed pubkey
@@ -235,7 +235,7 @@ class Test_bitcoin(ElectrumTestCase):
         self.assertTrue(bitcoin.verify_usermessage_with_address(address=addr, sig65=base64.b64decode(sig_high_s), message=msg))
 
     def test_signmessage_segwit_witness_v0_address(self):
-        msg = b'Electrum'
+        msg = b'Bedrock'
         # p2wpkh-p2sh
         sig1 = self.sign_message_with_wif_privkey("p2wpkh-p2sh:L1cgMEnShp73r9iCukoPE3MogLeueNYRD9JVsfT1zVHyPBR3KqBY", msg)
         addr1 = "3DYoBqQ5N6dADzyQjy9FT1Ls4amiYVaqTG"
@@ -668,7 +668,7 @@ class Test_bitcoin(ElectrumTestCase):
                          segwit_addr.bech32_decode(bolt12_str, with_checksum=False, ignore_long_length=True))
 
 
-class Test_xprv_xpub(ElectrumTestCase):
+class Test_xprv_xpub(BedrockTestCase):
 
     xprv_xpub = (
         # Taken from test vectors in https://en.bitcoin.it/wiki/BIP_0032_TestVectors
@@ -956,7 +956,7 @@ class Test_xprv_xpub(ElectrumTestCase):
             self.assertTrue(xkey_b58.startswith(xpub_headers_b58[xtype]))
 
 
-class Test_xprv_xpub_testnet(ElectrumTestCase):
+class Test_xprv_xpub_testnet(BedrockTestCase):
     TESTNET = True
 
     def test_version_bytes(self):
@@ -995,7 +995,7 @@ class Test_xprv_xpub_testnet(ElectrumTestCase):
             self.assertTrue(xkey_b58.startswith(xpub_headers_b58[xtype]))
 
 
-class Test_keyImport(ElectrumTestCase):
+class Test_keyImport(BedrockTestCase):
 
     priv_pub_addr = (
            {'priv': 'KzMFjMC2MPadjvX5Cd7b8AKKjjpBSoRKUTpoAtN6B3J9ezWYyXS6',
@@ -1161,7 +1161,7 @@ class Test_keyImport(ElectrumTestCase):
                            raise_on_error=True)
 
 
-class TestBaseEncode(ElectrumTestCase):
+class TestBaseEncode(BedrockTestCase):
 
     def test_base43(self):
         tx_hex = "020000000001021cd0e96f9ca202e017ca3465e3c13373c0df3a4cdd91c1fd02ea42a1a65d2a410000000000fdffffff757da7cf8322e5063785e2d8ada74702d2648fa2add2d533ba83c52eb110df690200000000fdffffff02d07e010000000000160014b544c86eaf95e3bb3b6d2cabb12ab40fc59cad9ca086010000000000232102ce0d066fbfcf150a5a1bbc4f312cd2eb080e8d8a47e5f2ce1a63b23215e54fb5ac02483045022100a9856bf10a950810abceeabc9a86e6ba533e130686e3d7863971b9377e7c658a0220288a69ef2b958a7c2ecfa376841d4a13817ed24fa9a0e0a6b9cb48e6439794c701210324e291735f83ff8de47301b12034950b80fa4724926a34d67e413d8ff8817c53024830450221008f885978f7af746679200ed55fe2e86c1303620824721f95cc41eb7965a3dfcf02207872082ac4a3c433d41a203e6d685a459e70e551904904711626ac899238c20a0121023d4c9deae1aacf3f822dd97a28deaec7d4e4ff97be746d124a63d20e582f5b290a971600"
@@ -1191,7 +1191,7 @@ class TestBaseEncode(ElectrumTestCase):
                          DecodeBase58Check(data_base58check))
 
 
-class TestTaprootHelpers(ElectrumTestCase):
+class TestTaprootHelpers(BedrockTestCase):
 
     def test_taproot_tweak_homomorphism(self):
         # For any byte string h it holds that

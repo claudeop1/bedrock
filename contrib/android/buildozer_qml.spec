@@ -1,13 +1,13 @@
 [app]
 
 # (str) Title of your application
-title = Electrum
+title = Bedrock
 
 # (str) Package name
-package.name = Electrum
+package.name = Bedrock
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.electrum
+package.domain = org.bedrock
 
 # (str) Source code where the main.py live
 source.dir = .
@@ -27,25 +27,25 @@ source.exclude_dirs =
     env,
     tests,
     fastlane,
-    electrum/www,
-    electrum/scripts,
-    electrum/utils,
-    electrum/gui/qt,
-    electrum/plugins/audio_modem,
-    electrum/plugins/bitbox02,
-    electrum/plugins/coldcard,
-    electrum/plugins/digitalbitbox,
-    electrum/plugins/jade,
-    electrum/plugins/keepkey,
-    electrum/plugins/ledger,
-    electrum/plugins/nwc,
-    electrum/plugins/payserver,
-    electrum/plugins/revealer,
-    electrum/plugins/safe_t,
-    electrum/plugins/swapserver,
-    electrum/plugins/timelock_recovery,
-    electrum/plugins/trezor,
-    electrum/plugins/watchtower,
+    bedrock/www,
+    bedrock/scripts,
+    bedrock/utils,
+    bedrock/gui/qt,
+    bedrock/plugins/audio_modem,
+    bedrock/plugins/bitbox02,
+    bedrock/plugins/coldcard,
+    bedrock/plugins/digitalbitbox,
+    bedrock/plugins/jade,
+    bedrock/plugins/keepkey,
+    bedrock/plugins/ledger,
+    bedrock/plugins/nwc,
+    bedrock/plugins/payserver,
+    bedrock/plugins/revealer,
+    bedrock/plugins/safe_t,
+    bedrock/plugins/swapserver,
+    bedrock/plugins/timelock_recovery,
+    bedrock/plugins/trezor,
+    bedrock/plugins/watchtower,
     packages/qdarkstyle,
     packages/qtpy,
     packages/bin,
@@ -60,8 +60,8 @@ source.exclude_patterns = Makefile,setup*,
     packages/frozenlist-*.dist-info/*
 
 # (str) Application versioning (method 1)
-version.regex = ELECTRUM_VERSION = '(.*)'
-version.filename = %(source.dir)s/electrum/version.py
+version.regex = BEDROCK_VERSION = '(.*)'
+version.filename = %(source.dir)s/bedrock/version.py
 
 # (str) Application versioning (method 2)
 #version = 1.9.8
@@ -82,12 +82,12 @@ requirements =
     libzbar
 
 # (str) Presplash of the application
-presplash.filename = %(source.dir)s/electrum/gui/icons/electrum_presplash.png
+presplash.filename = %(source.dir)s/bedrock/gui/icons/bedrock_presplash.png
 
 # (str) Icon of the application
-icon.filename = %(source.dir)s/electrum/gui/icons/android_electrum_icon_legacy.png
-icon.adaptive_foreground.filename = %(source.dir)s/electrum/gui/icons/android_electrum_icon_foreground.png
-icon.adaptive_background.filename = %(source.dir)s/electrum/gui/icons/android_electrum_icon_background.png
+icon.filename = %(source.dir)s/bedrock/gui/icons/android_bedrock_icon_legacy.png
+icon.adaptive_foreground.filename = %(source.dir)s/bedrock/gui/icons/android_bedrock_icon_foreground.png
+icon.adaptive_background.filename = %(source.dir)s/bedrock/gui/icons/android_bedrock_icon_background.png
 
 # (str) Supported orientation (one of landscape, portrait or all)
 orientation = portrait
@@ -153,7 +153,7 @@ android.accept_sdk_license = True
 #android.add_jars = foo.jar,bar.jar,path/to/more/*.jar
 #android.add_jars = lib/android/zbar.jar
 
-android.add_jars = .buildozer/android/platform/*/build/libs_collections/Electrum/jar/*.jar
+android.add_jars = .buildozer/android/platform/*/build/libs_collections/Bedrock/jar/*.jar
 
 
 android.add_aars =
@@ -164,14 +164,14 @@ android.add_aars =
 
 # (list) List of Java files to add to the android project (can be java or a
 # directory containing the files)
-android.add_src = electrum/gui/qml/java_classes/
+android.add_src = bedrock/gui/qml/java_classes/
 
 # kotlin-stdlib is required for zxing-cpp (BarcodeScannerView)
 android.gradle_dependencies =
     androidx.core:core:1.16.0,
     org.jetbrains.kotlin:kotlin-stdlib:1.8.22
 
-android.add_activities = org.electrum.qr.SimpleScannerActivity, org.electrum.biometry.BiometricActivity
+android.add_activities = org.bedrock.qr.SimpleScannerActivity, org.bedrock.biometry.BiometricActivity
 
 # (list) Put these files or directories in the apk res directory.
 # The option may be used in three ways, the value may contain one or zero ':'
@@ -183,7 +183,7 @@ android.add_activities = org.electrum.qr.SimpleScannerActivity, org.electrum.bio
 # 3) A directory, here 'legal_resources' must contain one or more directories,
 # each of a resource kind:  drawable, xml, etc...
 # android.add_resources = legal_resources
-android.add_resources = electrum/gui/qml/android_res/layout:layout
+android.add_resources = bedrock/gui/qml/android_res/layout:layout
 
 # (str) python-for-android branch to use, if not master, useful to try
 # not yet merged features.

@@ -1,4 +1,4 @@
-# Running Electrum from source on Windows (development version)
+# Running Bedrock from source on Windows (development version)
 
 ## Prerequisites
 
@@ -9,8 +9,8 @@
 
 ### 1. Check out the code from GitHub:
 ```
-> git clone https://github.com/spesmilo/electrum.git
-> cd electrum
+> git clone https://github.com/spesmilo/bedrock.git
+> cd bedrock
 > git submodule update --init
 ```
 
@@ -21,14 +21,14 @@ Run install (this should install most dependencies):
 
 ### 2. Install `libsecp256k1`
 
-[comment]: # (technically the dll should be put into site-packages/electrum_ecc/,
-but putting it into electrum/ also works because of the `os.add_dll_directory` call in
-electrum/__init__.py)
+[comment]: # (technically the dll should be put into site-packages/bedrock_ecc/,
+but putting it into bedrock/ also works because of the `os.add_dll_directory` call in
+bedrock/__init__.py)
 
 [libsecp256k1](https://github.com/bitcoin-core/secp256k1) is a required dependency.
 This is a C library, which you need to compile yourself.
-Electrum needs a dll, named `libsecp256k1-0.dll` (or newer `libsecp256k1-*.dll`),
-placed into the inner `electrum/` folder.
+Bedrock needs a dll, named `libsecp256k1-0.dll` (or newer `libsecp256k1-*.dll`),
+placed into the inner `bedrock/` folder.
 
 For Unix-like systems, the (`contrib/make_libsecp256k1.sh`) script does this for you,
 however it does not work on Windows.
@@ -49,18 +49,18 @@ Alternatively, MSYS2 and MinGW-w64 can be used directly on Windows, as follows.
   $ pacman -S --needed git base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-autotools
   $ export PATH="$PATH:/mingw64/bin"
   ```
-  `cd` into the git clone, e.g. `C:\wspace\electrum` (auto-mounted at `/c/wspace/electrum`)
+  `cd` into the git clone, e.g. `C:\wspace\bedrock` (auto-mounted at `/c/wspace/bedrock`)
   ```
-  $ cd /c/wspace/electrum
+  $ cd /c/wspace/bedrock
   $ GCC_TRIPLET_HOST="x86_64-w64-mingw32" ./contrib/make_libsecp256k1.sh
   ```
 
-(note: this is a bit cumbersome, see [issue #5976](https://github.com/spesmilo/electrum/issues/5976)
+(note: this is a bit cumbersome, see [issue #5976](https://github.com/spesmilo/bedrock/issues/5976)
 for discussion)
 
-### 3. Run electrum:
+### 3. Run bedrock:
 
 ```
-> python3 ./run_electrum
+> python3 ./run_bedrock
 ```
 

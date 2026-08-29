@@ -1,24 +1,24 @@
-import electrum_ecc as ecc
+import bedrock_ecc as ecc
 
-from electrum import bitcoin
-from electrum.address_synchronizer import TX_HEIGHT_UNCONFIRMED
-from electrum.bitcoin import COIN, construct_script, opcodes
-from electrum.fee_policy import FixedFeePolicy
-from electrum.simple_config import SimpleConfig
-from electrum.transaction import PartialTxInput, PartialTxOutput, TxOutput, Transaction
-from electrum.wallet import Abstract_Wallet
+from bedrock import bitcoin
+from bedrock.address_synchronizer import TX_HEIGHT_UNCONFIRMED
+from bedrock.bitcoin import COIN, construct_script, opcodes
+from bedrock.fee_policy import FixedFeePolicy
+from bedrock.simple_config import SimpleConfig
+from bedrock.transaction import PartialTxInput, PartialTxOutput, TxOutput, Transaction
+from bedrock.wallet import Abstract_Wallet
 
-from .. import ElectrumTestCase
+from .. import BedrockTestCase
 from .. import restore_wallet_from_text__for_unittest
 from .toyserver import ToyServer, topologically_sort_subgraph, TxConflicts, TxConflictsBlockchain
 
 
-class TestToyServer(ElectrumTestCase):
+class TestToyServer(BedrockTestCase):
     REGTEST = True
 
     async def asyncSetUp(self):
         await super().asyncSetUp()
-        self.config = SimpleConfig({'electrum_path': self.electrum_path})
+        self.config = SimpleConfig({'bedrock_path': self.bedrock_path})
         self.toyserver = ToyServer()
         await self.toyserver.start()
         assert self.toyserver.cur_height == 0
