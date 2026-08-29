@@ -19,11 +19,11 @@ on:
         options: [arm64-v8a, armeabi-v7a, x86_64]
 
 permissions:
-  contents: write # Altered from read to allow release updates
+  contents: write
 
 concurrency:
   group: builds-${{ github.ref }}
-  cancel-in-progress: false   # never kill a nightly or in-progress build
+  cancel-in-progress: false
 
 env:
   ARTIFACT_RETENTION: '14'
@@ -36,94 +36,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          fetch-depth: 0    # for git describe / version detection
-
-      - name: Refactor Electrum to Bedrock
-        run: |
-          python3 -c "
-          import os, re
-          replacements = {'ELECTRUM': 'BEDROCK', 'Electrum': 'Bedrock', 'electrum': 'bedrock'}
-          for root, dirs, files in os.walk('.', topdown=True):
-              if '.git' in root: continue
-              for name in files + dirs:
-                  filepath = os.path.join(root, name)
-                  if os.path.islink(filepath):
-                      target = os.readlink(filepath)
-                      new_target = target
-                      for old, new in replacements.items(): new_target = new_target.replace(old, new)
-                      if new_target != target:
-                          os.unlink(filepath)
-                          os.symlink(new_target, filepath)
-          for root, dirs, files in os.walk('.', topdown=False):
-              if '.git' in root: continue
-              for f in files:
-                  if 'electrum' in f.lower():
-                      new_f = f
-                      for old, new in replacements.items(): new_f = new_f.replace(old, new)
-                      if root == '.' and new_f == 'bedrock': new_f = 'run_bedrock'
-                      os.rename(os.path.join(root, f), os.path.join(root, new_f))
-              for d in dirs:
-                  if 'electrum' in d.lower():
-                      new_d = d
-                      for old, new in replacements.items(): new_d = new_d.replace(old, new)
-                      os.rename(os.path.join(root, d), os.path.join(root, new_d))
-          extensions = ('.py', '.toml', '.desktop', '.md', '.sh', '.rst', '.iss', '.spec', '.nsi', '.in')
-          for root, dirs, files in os.walk('.'):
-              if '.git' in root: continue
-              for file in files:
-                  filepath = os.path.join(root, file)
-                  if os.path.islink(filepath): continue
-                  if file.endswith(extensions) or file in ['setup.py', 'MANIFEST.in', 'run_bedrock']:
-                      try:
-                          with open(filepath, 'r', encoding='utf-8') as f: content = f.read()
-                          new_content = content
-                          for old, new in replacements.items(): new_content = new_content.replace(old, new)
-                          if file == 'setup.py':
-                              new_content = re.sub(r'scripts\s*=\s*\[[^\]]+\]', 'scripts=[\"run_bedrock\"]', new_content)
-                          if new_content != content:
-                              with open(filepath, 'w', encoding='utf-8') as f: f.write(new_content)
-                      except Exception: pass
-          "
-
-      - name: Cache Wine pip
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
-        with:
-          path: contrib/build-wine/.cache/win*/wine_pip_cache
-          key: wine-pip-${{ hashFiles('contrib/deterministic-build/*.txt', 'contrib/build-wine/**') }}
-
-      - name: Cache Wine native lib builds (libsecp256k1, libusb, libzbar)
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
-        with:
-          path: contrib/build-wine/.cache/win*/build
-          key: wine-build-${{ hashFiles('contrib/make_libsecp256k1.sh', 'contrib/make_libusb.sh', 'contrib/make_zbar.sh', 'contrib/build-wine/**') }}
-
-      - name: Build Windows binaries
-        run: ./contrib/build-wine/build.sh
-
-      - name: List output
-        run: ls -lah contrib/build-wine/dist/
-
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
-        with:
-          name: bedrock-windows-${{ github.sha }}
-          path: contrib/build-wine/dist/*
-          retention-days: ${{ env.ARTIFACT_RETENTION }}
-          if-no-files-found: error
-          compression-level: 0
-
-  android:
-    name: "build: Android (${{ inputs.android_arch || 'arm64-v8a' }})"
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'android' }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 180
-    env:
-      APK_ARCH: ${{ inputs.android_arch || 'arm64-v8a' }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -156,6 +69,95 @@ jobs:
                       new_d = d
                       for old, new in replacements.items(): new_d = new_d.replace(old, new)
                       os.rename(os.path.join(root, d), os.path.join(root, new_d))
+          os.makedirs('bedrock/locale', exist_ok=True)
+          extensions = ('.py', '.toml', '.desktop', '.md', '.sh', '.rst', '.iss', '.spec', '.nsi', '.in')
+          for root, dirs, files in os.walk('.'):
+              if '.git' in root: continue
+              for file in files:
+                  filepath = os.path.join(root, file)
+                  if os.path.islink(filepath): continue
+                  if file.endswith(extensions) or file in ['setup.py', 'MANIFEST.in', 'run_bedrock']:
+                      try:
+                          with open(filepath, 'r', encoding='utf-8') as f: content = f.read()
+                          new_content = content
+                          for old, new in replacements.items(): new_content = new_content.replace(old, new)
+                          if file == 'setup.py':
+                              new_content = re.sub(r'scripts\s*=\s*\[[^\]]+\]', 'scripts=[\"run_bedrock\"]', new_content)
+                          if new_content != content:
+                              with open(filepath, 'w', encoding='utf-8') as f: f.write(new_content)
+                      except Exception: pass
+          "
+
+      - name: Cache Wine pip
+        uses: actions/cache@v4
+        with:
+          path: contrib/build-wine/.cache/win*/wine_pip_cache
+          key: wine-pip-${{ hashFiles('contrib/deterministic-build/*.txt', 'contrib/build-wine/**') }}
+
+      - name: Cache Wine native lib builds (libsecp256k1, libusb, libzbar)
+        uses: actions/cache@v4
+        with:
+          path: contrib/build-wine/.cache/win*/build
+          key: wine-build-${{ hashFiles('contrib/make_libsecp256k1.sh', 'contrib/make_libusb.sh', 'contrib/make_zbar.sh', 'contrib/build-wine/**') }}
+
+      - name: Build Windows binaries
+        run: ./contrib/build-wine/build.sh
+
+      - name: List output
+        run: ls -lah contrib/build-wine/dist/
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bedrock-windows-${{ github.sha }}
+          path: contrib/build-wine/dist/*
+          retention-days: ${{ env.ARTIFACT_RETENTION }}
+          if-no-files-found: error
+          compression-level: 0
+
+  android:
+    name: "build: Android (${{ inputs.android_arch || 'arm64-v8a' }})"
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.target == 'all' || inputs.target == 'android' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      APK_ARCH: ${{ inputs.android_arch || 'arm64-v8a' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Refactor Electrum to Bedrock
+        run: |
+          python3 -c "
+          import os, re
+          replacements = {'ELECTRUM': 'BEDROCK', 'Electrum': 'Bedrock', 'electrum': 'bedrock'}
+          for root, dirs, files in os.walk('.', topdown=True):
+              if '.git' in root: continue
+              for name in files + dirs:
+                  filepath = os.path.join(root, name)
+                  if os.path.islink(filepath):
+                      target = os.readlink(filepath)
+                      new_target = target
+                      for old, new in replacements.items(): new_target = new_target.replace(old, new)
+                      if new_target != target:
+                          os.unlink(filepath)
+                          os.symlink(new_target, filepath)
+          for root, dirs, files in os.walk('.', topdown=False):
+              if '.git' in root: continue
+              for f in files:
+                  if 'electrum' in f.lower():
+                      new_f = f
+                      for old, new in replacements.items(): new_f = new_f.replace(old, new)
+                      if root == '.' and new_f == 'bedrock': new_f = 'run_bedrock'
+                      os.rename(os.path.join(root, f), os.path.join(root, new_f))
+              for d in dirs:
+                  if 'electrum' in d.lower():
+                      new_d = d
+                      for old, new in replacements.items(): new_d = new_d.replace(old, new)
+                      os.rename(os.path.join(root, d), os.path.join(root, new_d))
+          os.makedirs('bedrock/locale', exist_ok=True)
           extensions = ('.py', '.toml', '.desktop', '.md', '.sh', '.rst', '.iss', '.spec', '.nsi', '.in')
           for root, dirs, files in os.walk('.'):
               if '.git' in root: continue
@@ -191,13 +193,13 @@ jobs:
           df -h
 
       - name: Cache python packages
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: packages
           key: android-packages-${{ env.APK_ARCH }}-${{ hashFiles('contrib/deterministic-build/**', 'contrib/make_packages.sh', 'contrib/android/**', '!contrib/android/.cache') }}
 
       - name: Cache buildozer (p4a)
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: |
             .buildozer_qml/android/platform/build-${{ env.APK_ARCH }}/packages
@@ -211,7 +213,7 @@ jobs:
         run: ls -lah dist/
 
       - name: Upload Android APK
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@v4
         with:
           name: bedrock-android-${{ env.APK_ARCH }}-${{ github.sha }}
           path: dist/*
@@ -226,7 +228,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -259,6 +261,7 @@ jobs:
                       new_d = d
                       for old, new in replacements.items(): new_d = new_d.replace(old, new)
                       os.rename(os.path.join(root, d), os.path.join(root, new_d))
+          os.makedirs('bedrock/locale', exist_ok=True)
           extensions = ('.py', '.toml', '.desktop', '.md', '.sh', '.rst', '.iss', '.spec', '.nsi', '.in')
           for root, dirs, files in os.walk('.'):
               if '.git' in root: continue
@@ -278,13 +281,13 @@ jobs:
           "
 
       - name: Cache AppImage pip
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: contrib/build-linux/appimage/.cache/pip_cache
           key: appimage-pip-${{ hashFiles('contrib/deterministic-build/*.txt', 'contrib/build-linux/appimage/**') }}
 
       - name: Cache AppImage build
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+        uses: actions/cache@v4
         with:
           path: contrib/build-linux/appimage/.cache/appimage
           key: appimage-build-${{ hashFiles('contrib/make_libsecp256k1.sh', 'contrib/make_zbar.sh', 'contrib/build-linux/appimage/**') }}
@@ -296,7 +299,7 @@ jobs:
         run: ls -lah dist/
 
       - name: Upload AppImage
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@v4
         with:
           name: bedrock-appimage-${{ github.sha }}
           path: dist/*.AppImage
@@ -321,7 +324,7 @@ jobs:
             artifact_name: bedrock-sourceonly-tarball
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -354,6 +357,7 @@ jobs:
                       new_d = d
                       for old, new in replacements.items(): new_d = new_d.replace(old, new)
                       os.rename(os.path.join(root, d), os.path.join(root, new_d))
+          os.makedirs('bedrock/locale', exist_ok=True)
           extensions = ('.py', '.toml', '.desktop', '.md', '.sh', '.rst', '.iss', '.spec', '.nsi', '.in')
           for root, dirs, files in os.walk('.'):
               if '.git' in root: continue
@@ -381,7 +385,7 @@ jobs:
         run: ls -lah dist/
 
       - name: Upload tarball
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}-${{ github.sha }}
           path: dist/*.tar.gz
