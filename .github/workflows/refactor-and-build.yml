@@ -1,4 +1,4 @@
-name: Refactor Electrum to Bedrock and Build
+name: Refactor Electrum to Bedrock and Build Binary
 
 on:
   workflow_dispatch:
@@ -50,7 +50,7 @@ jobs:
               "electrum": "bedrock",
           }
 
-          # Step 1: Update symbolic link targets first
+          # 1. Update symbolic links
           for root, dirs, files in os.walk(".", topdown=True):
               if ".git" in root:
                   continue
@@ -64,9 +64,8 @@ jobs:
                       if new_target != target:
                           os.unlink(filepath)
                           os.symlink(new_target, filepath)
-                          print(f"Updated symlink target: {filepath} -> {new_target}")
 
-          # Step 2: Rename files and directories bottom-up
+          # 2. Rename files & dirs bottom-up
           for root, dirs, files in os.walk(".", topdown=False):
               if ".git" in root:
                   continue
@@ -78,18 +77,15 @@ jobs:
                       if root == "." and new_f == "bedrock":
                           new_f = "run_bedrock"
                       os.rename(os.path.join(root, f), os.path.join(root, new_f))
-                      print(f"Renamed file: {f} -> {new_f}")
               for d in dirs:
                   if "electrum" in d.lower():
                       new_d = d
                       for old, new in replacements.items():
                           new_d = new_d.replace(old, new)
                       os.rename(os.path.join(root, d), os.path.join(root, new_d))
-                      print(f"Renamed dir: {d} -> {new_d}")
 
-          # Step 3: Replace text content across non-symlink project files
+          # 3. Update file contents
           extensions = (".py", ".toml", ".desktop", ".md", ".sh", ".rst", ".iss", ".spec", ".nsi", ".in")
-
           for root, dirs, files in os.walk("."):
               if ".git" in root:
                   continue
@@ -116,28 +112,30 @@ jobs:
                           if new_content != content:
                               with open(filepath, "w", encoding="utf-8") as f:
                                   f.write(new_content)
-                              print(f"Updated content: {filepath}")
-                      except Exception as e:
-                          print(f"Skipped {filepath}: {e}")
+                      except Exception:
+                          pass
           EOF
 
           python3 refactor.py
           rm refactor.py
 
-      - name: Install Bedrock Package Locally
+      - name: Install Dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade pip setuptools wheel pyinstaller
           python -m pip install -e .
 
-      - name: Verify Executable and Build Setup
+      - name: Build Standalone Binary
         run: |
-          if [ -f "run_bedrock" ]; then
-            python3 run_bedrock --help || true
+          if [ -f "bedrock.spec" ]; then
+            pyinstaller --noconfirm bedrock.spec
+          elif [ -f "electrum.spec" ]; then
+            pyinstaller --noconfirm electrum.spec
+          else
+            pyinstaller --noconfirm --clean --onefile --name bedrock run_bedrock
           fi
 
-      - name: Commit and Push Refactored Code
-        if: github.event.inputs.commit_changes == 'true' && github.event_name == 'workflow_dispatch'
-        uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Upload Binary Artifact
+        uses: actions/upload-artifact@v4
         with:
-          commit_message: "refactor: rename Electrum to Bedrock including symlinks"
-          branch: ${{ github.ref_name }}
+          name: bedrock-linux-binary
+          path: dist/
