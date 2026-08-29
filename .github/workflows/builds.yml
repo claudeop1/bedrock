@@ -40,6 +40,53 @@ jobs:
         with:
           fetch-depth: 0    # for git describe / version detection
 
+      - name: Refactor Electrum to Bedrock
+        run: |
+          python3 -c "
+          import os, re
+          replacements = {'ELECTRUM': 'BEDROCK', 'Electrum': 'Bedrock', 'electrum': 'bedrock'}
+          for root, dirs, files in os.walk('.', topdown=True):
+              if '.git' in root: continue
+              for name in files + dirs:
+                  filepath = os.path.join(root, name)
+                  if os.path.islink(filepath):
+                      target = os.readlink(filepath)
+                      new_target = target
+                      for old, new in replacements.items(): new_target = new_target.replace(old, new)
+                      if new_target != target:
+                          os.unlink(filepath)
+                          os.symlink(new_target, filepath)
+          for root, dirs, files in os.walk('.', topdown=False):
+              if '.git' in root: continue
+              for f in files:
+                  if 'electrum' in f.lower():
+                      new_f = f
+                      for old, new in replacements.items(): new_f = new_f.replace(old, new)
+                      if root == '.' and new_f == 'bedrock': new_f = 'run_bedrock'
+                      os.rename(os.path.join(root, f), os.path.join(root, new_f))
+              for d in dirs:
+                  if 'electrum' in d.lower():
+                      new_d = d
+                      for old, new in replacements.items(): new_d = new_d.replace(old, new)
+                      os.rename(os.path.join(root, d), os.path.join(root, new_d))
+          extensions = ('.py', '.toml', '.desktop', '.md', '.sh', '.rst', '.iss', '.spec', '.nsi', '.in')
+          for root, dirs, files in os.walk('.'):
+              if '.git' in root: continue
+              for file in files:
+                  filepath = os.path.join(root, file)
+                  if os.path.islink(filepath): continue
+                  if file.endswith(extensions) or file in ['setup.py', 'MANIFEST.in', 'run_bedrock']:
+                      try:
+                          with open(filepath, 'r', encoding='utf-8') as f: content = f.read()
+                          new_content = content
+                          for old, new in replacements.items(): new_content = new_content.replace(old, new)
+                          if file == 'setup.py':
+                              new_content = re.sub(r'scripts\s*=\s*\[[^\]]+\]', 'scripts=[\"run_bedrock\"]', new_content)
+                          if new_content != content:
+                              with open(filepath, 'w', encoding='utf-8') as f: f.write(new_content)
+                      except Exception: pass
+          "
+
       - name: Cache Wine pip
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
         with:
@@ -61,7 +108,7 @@ jobs:
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
-          name: electrum-windows-${{ github.sha }}
+          name: bedrock-windows-${{ github.sha }}
           path: contrib/build-wine/dist/*
           retention-days: ${{ env.ARTIFACT_RETENTION }}
           if-no-files-found: error
@@ -80,7 +127,53 @@ jobs:
         with:
           fetch-depth: 0
 
-      # GitHub guarantees 14 GB of free space, but we can delete some things for more space.
+      - name: Refactor Electrum to Bedrock
+        run: |
+          python3 -c "
+          import os, re
+          replacements = {'ELECTRUM': 'BEDROCK', 'Electrum': 'Bedrock', 'electrum': 'bedrock'}
+          for root, dirs, files in os.walk('.', topdown=True):
+              if '.git' in root: continue
+              for name in files + dirs:
+                  filepath = os.path.join(root, name)
+                  if os.path.islink(filepath):
+                      target = os.readlink(filepath)
+                      new_target = target
+                      for old, new in replacements.items(): new_target = new_target.replace(old, new)
+                      if new_target != target:
+                          os.unlink(filepath)
+                          os.symlink(new_target, filepath)
+          for root, dirs, files in os.walk('.', topdown=False):
+              if '.git' in root: continue
+              for f in files:
+                  if 'electrum' in f.lower():
+                      new_f = f
+                      for old, new in replacements.items(): new_f = new_f.replace(old, new)
+                      if root == '.' and new_f == 'bedrock': new_f = 'run_bedrock'
+                      os.rename(os.path.join(root, f), os.path.join(root, new_f))
+              for d in dirs:
+                  if 'electrum' in d.lower():
+                      new_d = d
+                      for old, new in replacements.items(): new_d = new_d.replace(old, new)
+                      os.rename(os.path.join(root, d), os.path.join(root, new_d))
+          extensions = ('.py', '.toml', '.desktop', '.md', '.sh', '.rst', '.iss', '.spec', '.nsi', '.in')
+          for root, dirs, files in os.walk('.'):
+              if '.git' in root: continue
+              for file in files:
+                  filepath = os.path.join(root, file)
+                  if os.path.islink(filepath): continue
+                  if file.endswith(extensions) or file in ['setup.py', 'MANIFEST.in', 'run_bedrock']:
+                      try:
+                          with open(filepath, 'r', encoding='utf-8') as f: content = f.read()
+                          new_content = content
+                          for old, new in replacements.items(): new_content = new_content.replace(old, new)
+                          if file == 'setup.py':
+                              new_content = re.sub(r'scripts\s*=\s*\[[^\]]+\]', 'scripts=[\"run_bedrock\"]', new_content)
+                          if new_content != content:
+                              with open(filepath, 'w', encoding='utf-8') as f: f.write(new_content)
+                      except Exception: pass
+          "
+
       - name: Free disk space
         run: |
           df -h
@@ -120,7 +213,7 @@ jobs:
       - name: Upload Android APK
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
-          name: electrum-android-${{ env.APK_ARCH }}-${{ github.sha }}
+          name: bedrock-android-${{ env.APK_ARCH }}-${{ github.sha }}
           path: dist/*
           retention-days: ${{ env.ARTIFACT_RETENTION }}
           if-no-files-found: error
@@ -136,6 +229,53 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
+
+      - name: Refactor Electrum to Bedrock
+        run: |
+          python3 -c "
+          import os, re
+          replacements = {'ELECTRUM': 'BEDROCK', 'Electrum': 'Bedrock', 'electrum': 'bedrock'}
+          for root, dirs, files in os.walk('.', topdown=True):
+              if '.git' in root: continue
+              for name in files + dirs:
+                  filepath = os.path.join(root, name)
+                  if os.path.islink(filepath):
+                      target = os.readlink(filepath)
+                      new_target = target
+                      for old, new in replacements.items(): new_target = new_target.replace(old, new)
+                      if new_target != target:
+                          os.unlink(filepath)
+                          os.symlink(new_target, filepath)
+          for root, dirs, files in os.walk('.', topdown=False):
+              if '.git' in root: continue
+              for f in files:
+                  if 'electrum' in f.lower():
+                      new_f = f
+                      for old, new in replacements.items(): new_f = new_f.replace(old, new)
+                      if root == '.' and new_f == 'bedrock': new_f = 'run_bedrock'
+                      os.rename(os.path.join(root, f), os.path.join(root, new_f))
+              for d in dirs:
+                  if 'electrum' in d.lower():
+                      new_d = d
+                      for old, new in replacements.items(): new_d = new_d.replace(old, new)
+                      os.rename(os.path.join(root, d), os.path.join(root, new_d))
+          extensions = ('.py', '.toml', '.desktop', '.md', '.sh', '.rst', '.iss', '.spec', '.nsi', '.in')
+          for root, dirs, files in os.walk('.'):
+              if '.git' in root: continue
+              for file in files:
+                  filepath = os.path.join(root, file)
+                  if os.path.islink(filepath): continue
+                  if file.endswith(extensions) or file in ['setup.py', 'MANIFEST.in', 'run_bedrock']:
+                      try:
+                          with open(filepath, 'r', encoding='utf-8') as f: content = f.read()
+                          new_content = content
+                          for old, new in replacements.items(): new_content = new_content.replace(old, new)
+                          if file == 'setup.py':
+                              new_content = re.sub(r'scripts\s*=\s*\[[^\]]+\]', 'scripts=[\"run_bedrock\"]', new_content)
+                          if new_content != content:
+                              with open(filepath, 'w', encoding='utf-8') as f: f.write(new_content)
+                      except Exception: pass
+          "
 
       - name: Cache AppImage pip
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
@@ -158,7 +298,7 @@ jobs:
       - name: Upload AppImage
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
-          name: electrum-appimage-${{ github.sha }}
+          name: bedrock-appimage-${{ github.sha }}
           path: dist/*.AppImage
           retention-days: ${{ env.ARTIFACT_RETENTION }}
           if-no-files-found: error
@@ -175,15 +315,62 @@ jobs:
         include:
           - variant: full
             omit_unclean: '0'
-            artifact_name: electrum-tarball
+            artifact_name: bedrock-tarball
           - variant: source-only
             omit_unclean: '1'
-            artifact_name: electrum-sourceonly-tarball
+            artifact_name: bedrock-sourceonly-tarball
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
+
+      - name: Refactor Electrum to Bedrock
+        run: |
+          python3 -c "
+          import os, re
+          replacements = {'ELECTRUM': 'BEDROCK', 'Electrum': 'Bedrock', 'electrum': 'bedrock'}
+          for root, dirs, files in os.walk('.', topdown=True):
+              if '.git' in root: continue
+              for name in files + dirs:
+                  filepath = os.path.join(root, name)
+                  if os.path.islink(filepath):
+                      target = os.readlink(filepath)
+                      new_target = target
+                      for old, new in replacements.items(): new_target = new_target.replace(old, new)
+                      if new_target != target:
+                          os.unlink(filepath)
+                          os.symlink(new_target, filepath)
+          for root, dirs, files in os.walk('.', topdown=False):
+              if '.git' in root: continue
+              for f in files:
+                  if 'electrum' in f.lower():
+                      new_f = f
+                      for old, new in replacements.items(): new_f = new_f.replace(old, new)
+                      if root == '.' and new_f == 'bedrock': new_f = 'run_bedrock'
+                      os.rename(os.path.join(root, f), os.path.join(root, new_f))
+              for d in dirs:
+                  if 'electrum' in d.lower():
+                      new_d = d
+                      for old, new in replacements.items(): new_d = new_d.replace(old, new)
+                      os.rename(os.path.join(root, d), os.path.join(root, new_d))
+          extensions = ('.py', '.toml', '.desktop', '.md', '.sh', '.rst', '.iss', '.spec', '.nsi', '.in')
+          for root, dirs, files in os.walk('.'):
+              if '.git' in root: continue
+              for file in files:
+                  filepath = os.path.join(root, file)
+                  if os.path.islink(filepath): continue
+                  if file.endswith(extensions) or file in ['setup.py', 'MANIFEST.in', 'run_bedrock']:
+                      try:
+                          with open(filepath, 'r', encoding='utf-8') as f: content = f.read()
+                          new_content = content
+                          for old, new in replacements.items(): new_content = new_content.replace(old, new)
+                          if file == 'setup.py':
+                              new_content = re.sub(r'scripts\s*=\s*\[[^\]]+\]', 'scripts=[\"run_bedrock\"]', new_content)
+                          if new_content != content:
+                              with open(filepath, 'w', encoding='utf-8') as f: f.write(new_content)
+                      except Exception: pass
+          "
 
       - name: Build source tarball (${{ matrix.variant }})
         env:
@@ -217,7 +404,6 @@ jobs:
       - name: Generate Release Tag Name
         id: tag_gen
         run: |
-          # Creates a nightly identifier if not run from a tagged branch commit
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           else
