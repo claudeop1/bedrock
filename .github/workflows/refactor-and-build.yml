@@ -39,36 +39,39 @@ jobs:
             python3-pyqt6 \
             pyqt6-dev-tools
 
-      - name: Rename Files and Directories
-        run: |
-          if [ -d "electrum" ]; then
-            git mv electrum bedrock
-          fi
-          if [ -f "run_electrum" ]; then
-            git mv run_electrum run_bedrock
-          fi
-          if [ -f "electrum.desktop" ]; then
-            git mv electrum.desktop bedrock.desktop
-          fi
-
-      - name: Replace Text References Across Codebase
+      - name: Rename Files, Directories, and Update Text
         run: |
           python3 -c '
           import os
 
+          # Step 1: Rename files and directories (bottom-up so paths remain valid)
+          for root, dirs, files in os.walk(".", topdown=False):
+              if ".git" in root:
+                  continue
+              for f in files:
+                  if "electrum" in f.lower():
+                      new_f = f.replace("ELECTRUM", "BEDROCK").replace("Electrum", "Bedrock").replace("electrum", "bedrock")
+                      os.rename(os.path.join(root, f), os.path.join(root, new_f))
+                      print(f"Renamed file: {f} -> {new_f}")
+              for d in dirs:
+                  if "electrum" in d.lower():
+                      new_d = d.replace("ELECTRUM", "BEDROCK").replace("Electrum", "Bedrock").replace("electrum", "bedrock")
+                      os.rename(os.path.join(root, d), os.path.join(root, new_d))
+                      print(f"Renamed dir: {d} -> {new_d}")
+
+          # Step 2: Replace text content inside project files
           replacements = {
               "ELECTRUM": "BEDROCK",
               "Electrum": "Bedrock",
               "electrum": "bedrock",
           }
-
-          extensions = (".py", ".toml", ".desktop", ".md", ".sh", ".rst", ".iss", ".spec", ".nsi")
+          extensions = (".py", ".toml", ".desktop", ".md", ".sh", ".rst", ".iss", ".spec", ".nsi", ".in")
 
           for root, dirs, files in os.walk("."):
               if ".git" in root:
                   continue
               for file in files:
-                  if file.endswith(extensions) or file in ["setup.py", "MANIFEST.in", "run_bedrock"]:
+                  if file.endswith(extensions) or file in ["setup.py", "MANIFEST.in", "run_bedrock", "bedrock"]:
                       filepath = os.path.join(root, file)
                       try:
                           with open(filepath, "r", encoding="utf-8") as f:
@@ -81,9 +84,9 @@ jobs:
                           if new_content != content:
                               with open(filepath, "w", encoding="utf-8") as f:
                                   f.write(new_content)
-                              print(f"Updated: {filepath}")
+                              print(f"Updated content: {filepath}")
                       except Exception as e:
-                          print(f"Skipped {filepath}: {e}")
+                          print(f"Skipped content update for {filepath}: {e}")
           '
 
       - name: Install Bedrock Package Locally
