@@ -42,15 +42,18 @@ jobs:
       - name: Rename Files, Directories, and Update Text
         run: |
           python3 -c '
-          import os
+          import os, re
 
-          # Step 1: Rename files and directories (bottom-up so paths remain valid)
+          # Step 1: Rename files and directories bottom-up
           for root, dirs, files in os.walk(".", topdown=False):
               if ".git" in root:
                   continue
               for f in files:
                   if "electrum" in f.lower():
                       new_f = f.replace("ELECTRUM", "BEDROCK").replace("Electrum", "Bedrock").replace("electrum", "bedrock")
+                      # If root file becomes "bedrock", rename to "run_bedrock" to avoid directory collision
+                      if root == "." and new_f == "bedrock":
+                          new_f = "run_bedrock"
                       os.rename(os.path.join(root, f), os.path.join(root, new_f))
                       print(f"Renamed file: {f} -> {new_f}")
               for d in dirs:
@@ -59,7 +62,7 @@ jobs:
                       os.rename(os.path.join(root, d), os.path.join(root, new_d))
                       print(f"Renamed dir: {d} -> {new_d}")
 
-          # Step 2: Replace text content inside project files
+          # Step 2: Replace text content across files
           replacements = {
               "ELECTRUM": "BEDROCK",
               "Electrum": "Bedrock",
@@ -71,7 +74,7 @@ jobs:
               if ".git" in root:
                   continue
               for file in files:
-                  if file.endswith(extensions) or file in ["setup.py", "MANIFEST.in", "run_bedrock", "bedrock"]:
+                  if file.endswith(extensions) or file in ["setup.py", "MANIFEST.in", "run_bedrock"]:
                       filepath = os.path.join(root, file)
                       try:
                           with open(filepath, "r", encoding="utf-8") as f:
@@ -81,12 +84,16 @@ jobs:
                           for old, new in replacements.items():
                               new_content = new_content.replace(old, new)
 
+                          if file == "setup.py":
+                              # Prevent setup.py from using scripts=["bedrock"] which conflicts with bedrock/ directory
+                              new_content = re.sub(r"scripts\s*=\s*\[[\"\']bedrock[\"\']\]", "scripts=[\"run_bedrock\"]", new_content)
+
                           if new_content != content:
                               with open(filepath, "w", encoding="utf-8") as f:
                                   f.write(new_content)
                               print(f"Updated content: {filepath}")
                       except Exception as e:
-                          print(f"Skipped content update for {filepath}: {e}")
+                          print(f"Skipped {filepath}: {e}")
           '
 
       - name: Install Bedrock Package Locally
