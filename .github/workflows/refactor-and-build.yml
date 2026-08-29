@@ -39,43 +39,65 @@ jobs:
             python3-pyqt6 \
             pyqt6-dev-tools
 
-      - name: Rename Files, Directories, and Fix Setup Scripts
+      - name: Rename Files, Directories, Symlinks, and Fix Setup Scripts
         run: |
           cat << 'EOF' > refactor.py
           import os, re
 
-          # Step 1: Rename files and directories bottom-up
+          replacements = {
+              "ELECTRUM": "BEDROCK",
+              "Electrum": "Bedrock",
+              "electrum": "bedrock",
+          }
+
+          # Step 1: Update symbolic link targets first
+          for root, dirs, files in os.walk(".", topdown=True):
+              if ".git" in root:
+                  continue
+              for name in files + dirs:
+                  filepath = os.path.join(root, name)
+                  if os.path.islink(filepath):
+                      target = os.readlink(filepath)
+                      new_target = target
+                      for old, new in replacements.items():
+                          new_target = new_target.replace(old, new)
+                      if new_target != target:
+                          os.unlink(filepath)
+                          os.symlink(new_target, filepath)
+                          print(f"Updated symlink target: {filepath} -> {new_target}")
+
+          # Step 2: Rename files and directories bottom-up
           for root, dirs, files in os.walk(".", topdown=False):
               if ".git" in root:
                   continue
               for f in files:
                   if "electrum" in f.lower():
-                      new_f = f.replace("ELECTRUM", "BEDROCK").replace("Electrum", "Bedrock").replace("electrum", "bedrock")
-                      # Rename root executable to 'run_bedrock' to prevent directory collisions
+                      new_f = f
+                      for old, new in replacements.items():
+                          new_f = new_f.replace(old, new)
                       if root == "." and new_f == "bedrock":
                           new_f = "run_bedrock"
                       os.rename(os.path.join(root, f), os.path.join(root, new_f))
                       print(f"Renamed file: {f} -> {new_f}")
               for d in dirs:
                   if "electrum" in d.lower():
-                      new_d = d.replace("ELECTRUM", "BEDROCK").replace("Electrum", "Bedrock").replace("electrum", "bedrock")
+                      new_d = d
+                      for old, new in replacements.items():
+                          new_d = new_d.replace(old, new)
                       os.rename(os.path.join(root, d), os.path.join(root, new_d))
                       print(f"Renamed dir: {d} -> {new_d}")
 
-          # Step 2: Replace text content across project files
-          replacements = {
-              "ELECTRUM": "BEDROCK",
-              "Electrum": "Bedrock",
-              "electrum": "bedrock",
-          }
+          # Step 3: Replace text content across non-symlink project files
           extensions = (".py", ".toml", ".desktop", ".md", ".sh", ".rst", ".iss", ".spec", ".nsi", ".in")
 
           for root, dirs, files in os.walk("."):
               if ".git" in root:
                   continue
               for file in files:
+                  filepath = os.path.join(root, file)
+                  if os.path.islink(filepath):
+                      continue
                   if file.endswith(extensions) or file in ["setup.py", "MANIFEST.in", "run_bedrock"]:
-                      filepath = os.path.join(root, file)
                       try:
                           with open(filepath, "r", encoding="utf-8") as f:
                               content = f.read()
@@ -84,7 +106,6 @@ jobs:
                           for old, new in replacements.items():
                               new_content = new_content.replace(old, new)
 
-                          # Update setup.py script list so setuptools points to run_bedrock
                           if file == "setup.py":
                               new_content = re.sub(
                                   r"scripts\s*=\s*\[[^\]]+\]",
@@ -118,5 +139,5 @@ jobs:
         if: github.event.inputs.commit_changes == 'true' && github.event_name == 'workflow_dispatch'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "refactor: rename Electrum to Bedrock across repository"
+          commit_message: "refactor: rename Electrum to Bedrock including symlinks"
           branch: ${{ github.ref_name }}
