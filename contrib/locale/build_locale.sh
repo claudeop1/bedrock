@@ -29,7 +29,7 @@ mkdir -p "$DST_DIR"
 for i in *; do
     dir="$DST_DIR/$i/LC_MESSAGES"
     mkdir -p "$dir"
-    (msgfmt --output-file="$dir/bedrock.mo" "$i/bedrock.po" || true)
+    (msgfmt --output-file="$dir/electrum.mo" "$i/electrum.po" || true)
 done
 
 echo "running stats.py"
